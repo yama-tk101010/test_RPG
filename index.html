@@ -18,6 +18,7 @@
 <p>平和を取り戻すために。</p>
             </div>
             <button class="btn" style="width:100%;" onclick="startGame()">冒険を始める</button>
+<button class="btn" style="width:100%; margin-top:10px; background:linear-gradient(90deg, #224, #448, #224); border-color:#48f;" onclick="loadGame()">続きから始める</button>
         </div>
     </div>
 
@@ -171,6 +172,7 @@
                 <button class="btn" onclick="openItemMenu()">💊 アイテムを使う</button>
                 <button class="btn" onclick="openStatusMenu()">📊 強さを見る</button>
                 <button class="btn" id="btn-camp-check" onclick="checkAreaCamp()" style="display:none;">🔍 足元を調べる</button>
+<button class="btn" onclick="saveGame()" style="border-color:#fa0; color:#ffeb3b;">💾 セーブする</button>
                 <button class="btn" onclick="closeCamp()">↩️ 戻る</button>
             </div>
         </div>

@@ -2020,3 +2020,107 @@ function renderMap(){
     }
 }
 function log(m){const l=document.getElementById('log');l.innerHTML+=`<p>> ${m}</p>`;l.scrollTop=l.scrollHeight;}
+
+// ==========================================
+//  セーブ＆ロード機能 (追加実装)
+// ==========================================
+
+const SAVE_KEY = 'yamaRPG_SaveData_v1';
+
+function saveGame() {
+    // 保存するデータをまとめる
+    // 現在のシーン判定 (ダンジョン画面が表示されていればダンジョン、それ以外は町)
+    const isDungeon = document.getElementById('dungeon-scene').style.display === 'flex';
+    
+    const saveData = {
+        party: party,
+        inventory: partyInventory,
+        gold: partyGold,
+        openedChests: openedChests,
+        visitedMaps: visitedMaps,
+        clearedDungeons: clearedDungeons || [], // クリア状況
+        // 場所データ
+        currentDungeonId: currentDungeonId,
+        currentFloor: currentFloor,
+        playerPos: playerPos,
+        // 再開時のシーン情報
+        scene: isDungeon ? 'dungeon' : 'town',
+        timestamp: new Date().toLocaleString()
+    };
+
+    try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+        alert(`セーブしました！\n日時: ${saveData.timestamp}`);
+    } catch (e) {
+        alert("セーブに失敗しました。\nブラウザの容量制限などの可能性があります。");
+        console.error(e);
+    }
+}
+
+function loadGame() {
+    const json = localStorage.getItem(SAVE_KEY);
+    if (!json) {
+        alert("セーブデータが見つかりません。");
+        return;
+    }
+
+    if (!confirm("続きから始めますか？\n(現在の進行状況は上書きされます)")) return;
+
+    try {
+        const data = JSON.parse(json);
+
+        // データを復元
+        party = data.party;
+        partyInventory = data.inventory;
+        partyGold = data.gold;
+        openedChests = data.openedChests;
+        visitedMaps = data.visitedMaps;
+        clearedDungeons = data.clearedDungeons || [];
+        
+        currentDungeonId = data.currentDungeonId;
+        currentFloor = data.currentFloor;
+        playerPos = data.playerPos;
+
+        // UIやステータス計算の更新
+        party.forEach(p => {
+            // オブジェクトのメソッドなどはJSONで消えるため、念のため再計算などを通す
+            // (このゲームの作りならデータ復元だけで概ね動きます)
+            calculateStats(p); 
+        });
+
+        // 画面切り替え処理
+        document.getElementById('prologue-scene').style.display = 'none';
+        document.getElementById('camp-overlay').style.display = 'none';
+
+        if (data.scene === 'dungeon') {
+            // ダンジョンへ復帰
+            document.getElementById('town-scene').style.display = 'none';
+            document.getElementById('dungeon-scene').style.display = 'flex';
+            
+            // マップデータの再ロード
+            currentMapData = maps[currentDungeonId][currentFloor];
+            const cv = document.getElementById('dungeon-canvas');
+            if(cv) ctx = cv.getContext('2d');
+
+            // UI更新
+            const dName = dungeonData[currentDungeonId].name;
+            document.getElementById('floor-display').innerText = `${dName} B${currentFloor}F`;
+            
+            checkObject();
+            updatePlayerVision();
+            updateDungeonUI();
+            toggleControls('move');
+            log("ゲームをロードしました。");
+        } else {
+            // 町へ復帰
+            document.getElementById('dungeon-scene').style.display = 'none';
+            document.getElementById('town-scene').style.display = 'block';
+            updateTownStatus();
+            townLog("ゲームをロードしました。");
+        }
+
+    } catch (e) {
+        alert("セーブデータの読み込みに失敗しました。データが壊れている可能性があります。");
+        console.error(e);
+    }
+}
