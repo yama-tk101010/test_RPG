@@ -610,13 +610,21 @@ h1, h2 {
         background: rgba(0,0,0,0.6);
         border: 1px solid #333;
         overflow-y: auto;
+        
+        /* ★修正: 高さをPC版(12vh/min100px)より小さくしてスペースを空ける */
+        height: 10vh;      
+        min-height: 60px;
     }
     #battle-msg { margin: 0; padding: 2px; font-size: 0.9em; }
 
     /* 7. コントローラー */
     .controls {
         width: 100%;
-        padding: 2px 2px 5px 2px;
+        /* ★修正: 下のパディングを5pxから20pxに増やしてボタンを上に持ち上げる */
+        padding: 2px 2px 20px 2px;
+        /* iPhoneなどのホームバー(Safe Area)対策 */
+        padding-bottom: calc(20px + env(safe-area-inset-bottom));
+        
         box-sizing: border-box;
         align-self: end;
         gap: 3px;
