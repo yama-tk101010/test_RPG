@@ -1243,7 +1243,25 @@ function discardItem(index) {
 function selectItemTarget(itemId) { const it = itemData[itemId]; if(it.type !== 'consumable') { alert(`これは${it.name}です。装備メニューから装備してください。`); return; } if(battleSpellMode === 'item') { document.getElementById('sub-menu-overlay').style.display='none'; toggleControls('target'); ['btn-target-0','btn-target-1','btn-target-2'].forEach((id,i) => { document.getElementById(id).innerText=`${party[i].name}`; document.getElementById(id).onclick = () => executeBattleItem(itemId, i); }); return; } if(it.effect === 'warp') { useItem(itemId, null); return; } showSubMenu(party.map((p,i) => `<button class="btn" onclick="useItem('${itemId}', ${i})">${p.name}</button>`).join(''), "誰に使う？"); }
 function useItem(itemId, targetIdx) { const item = itemData[itemId]; const invIdx = partyInventory.indexOf(itemId); if(invIdx > -1) partyInventory.splice(invIdx, 1); if(item.effect === 'warp') { alert("光に包まれた！"); closeSubMenu(); closeCamp(); returnToTown(true); return; } const t = party[targetIdx]; if(item.effect === 'heal') { t.hp += item.power; if(t.hp > t.maxHp) t.hp = t.maxHp; alert(`${t.name}は回復した`); } else if(item.effect === 'curePoison') { if(t.status === 'poison') { t.status='normal'; alert("毒が消えた"); } else alert("効果がなかった"); } else if(item.effect === 'curePara') { if(t.status === 'paralyze') { t.status='normal'; alert("麻痺が治った"); } else alert("効果がなかった"); } if(document.getElementById('dungeon-scene').style.display === 'flex') updateDungeonUI(); else updateTownStatus(); openItemMenu(); }
 function showSubMenu(html, title) { document.getElementById('sub-menu-overlay').style.display='flex'; document.getElementById('sub-menu-title').innerText = title; document.getElementById('sub-menu-content').innerHTML = html; }
-function closeSubMenu() { document.getElementById('sub-menu-overlay').style.display='none'; if(battleSpellMode !== 'item') { document.getElementById('camp-overlay').style.display='flex'; } else { toggleControls('battle'); battleSpellMode = 'spell'; } }
+function closeSubMenu() { 
+    document.getElementById('sub-menu-overlay').style.display='none'; 
+    
+    // 戦闘中のアイテム使用時など
+    if(battleSpellMode === 'item') { 
+        toggleControls('battle'); 
+        battleSpellMode = 'spell'; 
+        return;
+    }
+    
+    // ★追加箇所: ダンジョンからの直接呼び出しなら、キャンプを開かずにダンジョンへ戻る
+    if(menuReturnTo === 'direct') {
+        toggleControls('move'); // 移動ボタンを表示
+        return;
+    }
+
+    // 通常（キャンプ経由）の場合はキャンプメニューに戻る
+    document.getElementById('camp-overlay').style.display='flex'; 
+}
 function openStatusMenu() { 
     document.getElementById('camp-overlay').style.display = 'none'; 
     document.getElementById('status-scene').style.display = 'flex'; 
@@ -1462,14 +1480,49 @@ function startInputPhase(isFirst=false) {
     } 
     document.getElementById('battle-msg').innerText = `▶ ${p.name} のコマンド`; 
     toggleControls('battle'); 
+// 1人目(index 0)なら戻るボタンを隠し、それ以外なら表示する
+    const backBtn = document.getElementById('btn-battle-back');
+    if(backBtn) {
+        if(activeMemberIndex > 0) {
+            backBtn.style.display = 'flex'; // ボタンを表示
+            // 見た目を良くするため、戻れる時は「逃げる」を隠す等の調整も可能ですが、
+            // 今回はシンプルに両方表示、またはグリッドのスペースを活用します
+        } else {
+            backBtn.style.display = 'none'; // 1人目は戻れないので隠す
+        }
+    }
 }
 
 function fight(act) { 
     const p = party[activeMemberIndex]; 
+    
     if(act==='run') { 
-        if(enemies.some(e=>e.isBoss) || Math.random()<0.5) { log("逃げられなかった！"); actionQueue.push({type:'wait',actorIndex:activeMemberIndex}); } 
-        else { log("逃げ切った！"); endBattle(); return; } 
-        startInputPhase();
+        // ★修正: 逃げる処理を一括実行 & 成功率アップ
+        
+        // ボス戦チェック
+        if(enemies.some(e=>e.isBoss)) {
+            log("逃げられなかった！(ボス戦)");
+            // 即座にターン終了へ (入力済みの行動も破棄して敵のターンへ)
+            actionQueue = []; 
+            executeTurnActions(); 
+            return;
+        }
+
+        // 成功率を 0.5 (50%) から 0.8 (80%) にアップ
+        if(Math.random() < 0.8) { 
+            log("逃げ切った！"); 
+            endBattle(); 
+            return; 
+        } else { 
+            log("逃げられなかった！"); 
+            // 失敗時は味方のターンを強制終了
+            // これまでに入力した行動（actionQueue）をクリア
+            actionQueue = [];
+            // 即座に行動フェーズへ移行（キューが空なのでそのまま敵ターンへ）
+            executeTurnActions();
+            return; 
+        } 
+        // startInputPhase() は呼ばない
     } else if(act==='attack') {
         if(enemies.filter(e=>e.hp>0).length > 1) { openEnemyTargetMenu('attack'); return; }
         let tIdx = enemies.findIndex(e => e.hp > 0);
@@ -1480,7 +1533,6 @@ function fight(act) {
         startInputPhase();
     }
 }
-
 function openSpellMenu() { 
     toggleControls('spell'); 
     const p = party[activeMemberIndex]; 
@@ -2123,4 +2175,24 @@ function loadGame() {
         alert("セーブデータの読み込みに失敗しました。データが壊れている可能性があります。");
         console.error(e);
     }
+}
+
+// ★追加: 前のキャラクターに戻る処理
+function battleBack() {
+    // 1人目の時は戻れない
+    if (activeMemberIndex <= 0) return;
+
+    // 前のキャラクターの行動をキャンセルする
+    // (actionQueueの末尾は「前の人のコマンド」が入っているため削除)
+    actionQueue.pop();
+
+    // インデックスを戻す
+    // ※前のキャラが死んでいる場合は飛ばして、さらにその前へ戻る必要がある
+    do {
+        activeMemberIndex--;
+    } while (activeMemberIndex > 0 && !party[activeMemberIndex].alive);
+
+    // インデックスを戻した状態で入力フェーズを再開
+    // 引数を true にすることで、startInputPhase 内での activeMemberIndex++ を防ぐ
+    startInputPhase(true);
 }

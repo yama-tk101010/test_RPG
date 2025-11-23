@@ -208,7 +208,7 @@
             <div id="log"></div>
             
            <div id="move-controls" class="controls move-pad">
-                <div></div>
+                <button class="btn" onclick="openEquipMenu('direct')">⚔️ 装備</button>
                 <button class="btn" onclick="movePlayer('forward')">⬆️ 前進</button>
                 <button class="btn" onclick="checkArea()">🔍 調べる</button>
 
@@ -226,7 +226,7 @@
     <button class="btn btn-magic" onclick="openSpellMenu()">⚡ 呪文</button>
     <button class="btn btn-def" onclick="fight('defend')">🛡️ 防御</button>
     <button class="btn" onclick="openBattleItemMenu()">💊 アイテム</button>
-    <div class="spacer"></div>
+    <button id="btn-battle-back" class="btn" onclick="battleBack()" style="display:none; color:#aaa; border-color:#666;">↩️ 戻る</button>
     <button class="btn" onclick="fight('run')">💨 逃げる</button>
 </div>
             
