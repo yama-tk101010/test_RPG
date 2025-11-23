@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Y_DRPG</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Sawarabi+Gothic&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="prologue-scene">
+        <div class="screen-box">
+            <h1>🏰 Y_DRPG</h1>
+            <div class="story-content" style="margin: 20px 0;">
+                <p>世界に異変が起きている。</p>
+<p>すべての迷宮を踏破せよ。</p>
+<p>平和を取り戻すために。</p>
+            </div>
+            <button class="btn" style="width:100%;" onclick="startGame()">冒険を始める</button>
+        </div>
+    </div>
+
+    <div id="town-scene" style="display: none;">
+        <div class="town-bg-overlay"></div>
+
+        <div class="screen-box town-box">
+            <div class="town-header">
+                <div class="town-title">
+                    <span style="font-size:1.5em; margin-right:5px;">🏰</span>
+                    <div>
+                        <div style="font-size:0.6em; color:#aaa; letter-spacing:2px;">BASE CAMP</div>
+                        <div>始まりの町</div>
+                    </div>
+                </div>
+                <div class="town-gold-badge">
+                    <span style="font-size:0.8em; color:#aaa;">Funds</span><br>
+                    💰 <span id="town-gold" style="color:#ffd700; font-weight:bold;">0</span> G
+                </div>
+            </div>
+
+            <div id="town-status"></div>
+
+            <hr style="border-color:#444; margin: 15px 0;">
+
+            <div class="town-menu-grid">
+                <button class="btn menu-btn town-action-btn" onclick="townAction('inn')">
+                    <div class="btn-icon">🛏️</div>
+                    <div class="btn-text">
+                        <span class="main">宿屋</span>
+                        <span class="sub">HP回復</span>
+                    </div>
+                </button>
+                <button class="btn menu-btn town-action-btn" onclick="townAction('shop')">
+                    <div class="btn-icon">⚔️</div>
+                    <div class="btn-text">
+                        <span class="main">道具屋</span>
+                        <span class="sub">装備売買</span>
+                    </div>
+                </button>
+                <button class="btn menu-btn town-action-btn" onclick="townAction('temple')">
+                    <div class="btn-icon">🔮</div>
+                    <div class="btn-text">
+                        <span class="main">神殿</span>
+                        <span class="sub">転職・成長</span>
+                    </div>
+                </button>
+                <button class="btn menu-btn town-action-btn btn-go" onclick="townAction('outside')">
+                    <div class="btn-icon">🗺️</div>
+                    <div class="btn-text">
+                        <span class="main">外へ</span>
+                        <span class="sub">冒険に出る</span>
+                    </div>
+                </button>
+            </div>
+
+            <button class="btn menu-btn system-btn" onclick="openCamp('town')">
+                <span>⛺ メニュー (アイテム・装備)</span>
+            </button>
+        </div>
+        
+        <div id="town-log" class="log-box town-log-style">
+            <p>町に到着した。</p>
+        </div>
+    </div>
+
+    <div id="world-map-scene" style="display: none;">
+        <div class="screen-box">
+            <h2>🌏 ワールドマップ</h2>
+            <p>どこへ向かいますか？</p>
+            <div class="menu-list">
+                <button class="btn menu-btn" onclick="goToDungeon(1)">🏰 地下迷宮 (推奨Lv1~)</button>
+                <button class="btn menu-btn" style="color:#8f8; border-color:#5f5;" onclick="goToDungeon(10)">🌲 迷いの森 (推奨Lv3~)</button>
+                <button class="btn menu-btn" style="color:#88f; border-color:#55f;" onclick="goToDungeon(20)">🌊 海底洞窟 (推奨Lv5~)</button>
+                <button class="btn menu-btn" style="color:#fd8; border-color:#da4;" onclick="goToDungeon(30)">🏛️ 古代神殿 (推奨Lv8~)</button>
+                <button class="btn menu-btn" style="color:#d8f; border-color:#a4d;" onclick="goToDungeon(40)">🗼 天空の塔 (推奨Lv10~)</button>
+            </div>
+            <button class="btn" onclick="closeWorldMap()" style="margin-top:20px;">町へ戻る</button>
+        </div>
+    </div>
+
+    <div id="shop-scene" style="display: none;">
+        <div class="screen-box">
+            <h2>💰 道具屋</h2>
+            <div style="text-align:right; color:#ffd700;">所持金: <span id="shop-gold">0</span> G</div>
+            <div id="shop-list" class="scroll-list"></div>
+            <button class="btn" onclick="exitShop()" style="margin-top:10px;">店を出る</button>
+        </div>
+    </div>
+
+    <div id="temple-scene" style="display: none;">
+        <div class="screen-box" style="border-color: #33ffff; max-width: 600px;">
+            <h2>🔮 転職の神殿</h2>
+            <p style="font-size:0.8em; color:#aaa;">魂を磨く者を選んでください</p>
+            
+            <div id="temple-member-list" class="temple-grid"></div>
+            
+            <hr style="border-color:#333; margin:10px 0;">
+
+            <div id="temple-action-area" style="display:none;">
+                <div class="temple-actions">
+                    <button class="btn temple-btn" onclick="checkLevelUp()">
+                        <div class="main">レベルアップ</div>
+                        <div class="sub" id="btn-lvl-sub">EXP確認</div>
+                    </button>
+                    <button class="btn temple-btn" onclick="showJobChange()">
+                        <div class="main">転職</div>
+                        <div class="sub">Lv1からやり直し</div>
+                    </button>
+                </div>
+
+                <div id="job-select-area" style="display:none; margin-top:10px;">
+                    <div class="grid-2col" id="job-buttons" style="display:grid; grid-template-columns:1fr 1fr; gap:5px;"></div>
+                    <div id="job-desc" class="desc-box" style="margin:5px 0; border:1px dotted #555; padding:5px;"></div>
+                    <button class="btn btn-magic" onclick="executeClassChange()">✨ 決定</button>
+                </div>
+                
+                <div id="levelup-area" style="display:none; margin-top:10px;">
+                    <div id="levelup-stats"></div>
+                    <p>残りポイント: <span id="bonus-points" style="color:#ff3;">0</span></p>
+                    <button class="btn btn-magic" onclick="executeLevelUp()">💪 成長する</button>
+                </div>
+            </div>
+
+            <button class="btn" onclick="exitTemple()" style="margin-top:15px; background:#333;">町へ戻る</button>
+        </div>
+    </div>
+
+    <div id="status-scene" style="display: none;">
+        <div class="screen-box" style="border-color: #aaaaff; max-height: 90vh; overflow-y: auto;">
+            <h2>📊 ステータス</h2>
+            <div id="status-content"></div>
+            <button class="btn" onclick="closeStatusMenu()" style="margin-top:10px;">閉じる</button>
+        </div>
+    </div>
+
+    <div id="sub-menu-overlay" style="display: none;">
+        <div class="screen-box" style="border-color: #ffffff;">
+            <h2 id="sub-menu-title">MENU</h2>
+            <div id="sub-menu-content" class="scroll-list"></div>
+            <button class="btn" onclick="closeSubMenu()" style="margin-top:10px;">↩️ 戻る</button>
+        </div>
+    </div>
+
+    <div id="camp-overlay" style="display: none;">
+        <div class="screen-box">
+            <h2>⛺ メニュー</h2>
+            <div style="display:grid; gap:10px;">
+                <button class="btn" onclick="openCampSpellMenu()">⚡ 呪文を使う</button>
+                <button class="btn" onclick="openEquipMenu()">⚔️ 装備変更</button>
+                <button class="btn" onclick="openItemMenu()">💊 アイテムを使う</button>
+                <button class="btn" onclick="openStatusMenu()">📊 強さを見る</button>
+                <button class="btn" id="btn-camp-check" onclick="checkAreaCamp()" style="display:none;">🔍 足元を調べる</button>
+                <button class="btn" onclick="closeCamp()">↩️ 戻る</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dungeon-scene" style="display: none;">
+        <div id="game-container">
+            <div id="main-area">
+                <canvas id="dungeon-canvas" width="300" height="200"></canvas>
+                <img id="enemy-img" src="" alt="">
+                <div id="vfx-layer"></div>
+                <div class="cave-overlay"></div>
+            </div>
+
+            <div id="map-wrapper">
+                <div id="floor-display"></div>
+                <div id="map-area"></div>
+            </div>
+
+            <div id="status">
+                <div class="party-status" id="dungeon-party-status"></div>
+                <div class="status-right-col">
+                    <div class="location-info">
+                        X:<span id="c-x">1</span> Y:<span id="c-y">8</span> <span id="c-dir">北</span>
+                    </div>
+                    <div id="enemy-stat" style="visibility: hidden; color:#ff5555; margin-top:5px; font-weight:bold;">
+                        👾 <span id="enemy-name"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="battle-msg" style="display:none;"></div>
+            <div id="log"></div>
+            
+            <div id="move-controls" class="controls move-pad">
+    <div></div><button class="btn" onclick="movePlayer('forward')">⬆️ 前進</button><div></div>
+    <button class="btn" onclick="turnPlayer('left')">🔄 左を向く</button>
+    <button class="btn" onclick="openCamp('dungeon')">⛺ メニュー</button>
+    <button class="btn" onclick="turnPlayer('right')">🔃 右を向く</button>
+    <div></div><button class="btn" onclick="movePlayer('backward')">⬇️ 後退</button>
+    <button id="btn-return" class="btn" style="display:none; color:#ff0; font-size:0.8em; padding:0;" onclick="returnToTown()">🏠 戻る</button>
+</div>
+            
+            <div id="battle-controls" class="controls battle-pad" style="display:none;">
+    <button class="btn btn-atk" onclick="fight('attack')">⚔️ 攻撃</button>
+    <button class="btn btn-magic" onclick="openSpellMenu()">⚡ 呪文</button>
+    <button class="btn btn-def" onclick="fight('defend')">🛡️ 防御</button>
+    <button class="btn" onclick="openBattleItemMenu()">💊 アイテム</button>
+    <div class="spacer"></div>
+    <button class="btn" onclick="fight('run')">💨 逃げる</button>
+</div>
+            
+            <div id="spell-controls" class="controls spell-pad" style="display:none;">
+                <button class="btn" id="btn-spell-flame" onclick="castSpell('flame')">フレイム</button>
+                <button class="btn" id="btn-spell-heal" onclick="castSpell('heal')">ヒール</button>
+                <button class="btn" id="btn-skill-double" onclick="castSpell('double')">二段切り</button>
+                <button class="btn" id="btn-spell-escape" onclick="castSpell('escape')">エスケープ</button>
+                <button class="btn" onclick="closeSpellMenu()" style="grid-column:1/-1;">戻る</button>
+            </div>
+            <div id="target-controls" class="controls battle-pad" style="display:none;">
+                <button class="btn" id="btn-target-0">Target 1</button>
+                <button class="btn" id="btn-target-1">Target 2</button>
+                <button class="btn" id="btn-target-2">Target 3</button>
+                <button class="btn" onclick="toggleControls('spell')" style="grid-column:1/-1;">戻る</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

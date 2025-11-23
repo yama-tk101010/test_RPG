@@ -1,0 +1,1027 @@
+@charset "UTF-8";
+
+/* =========================================
+   基本設定
+   ========================================= */
+body { 
+    background-color: #121212; 
+    color: #e0e0e0; 
+    font-family: "Sawarabi Gothic", "Roboto Mono", monospace; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    min-height: 100vh; 
+    margin: 0; 
+    padding: 5px; 
+    overflow: hidden; 
+}
+
+h1, h2 { 
+    margin: 10px 0; 
+    font-size: 1.5em; 
+    color: #ffd700; 
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); 
+    text-align: center;
+}
+
+/* アイコン */
+.hero-icon-lg { 
+    width: 50px; 
+    height: 50px; 
+    border: 2px solid #ffd700; 
+    border-radius: 8px; 
+    margin-right: 15px; 
+    vertical-align: middle; 
+    image-rendering: pixelated; 
+    background: #000; 
+}
+
+/* 画面枠 (共通) */
+.screen-box { 
+    border: 2px solid #444; 
+    border-radius: 10px; 
+    padding: 20px; 
+    background: #1a1a1a; 
+    box-shadow: 0 0 20px rgba(0,0,0,0.8); 
+    width: 90%; 
+    max-width: 600px; 
+    text-align: center; 
+    margin: 10px auto; 
+    box-sizing: border-box; 
+}
+
+/* =========================================
+   ゲーム画面レイアウト (PC/タブレット基準)
+   ========================================= */
+#game-container { 
+    display: grid; 
+    width: 100%; 
+    max-width: 700px; 
+    height: 95vh; 
+    grid-template-rows: auto auto auto 1fr; 
+    grid-template-columns: 110px 1fr; 
+    gap: 5px; 
+    padding: 5px; 
+    box-sizing: border-box; 
+}
+
+/* メインエリア (3Dビュー) */
+#main-area { 
+    grid-column: 1 / -1; 
+    height: 35vh; 
+    min-height: 250px; 
+    position: relative; 
+    border: 3px solid #555; 
+    background: #000; 
+    overflow: hidden; 
+    border-radius: 5px;
+}
+#dungeon-canvas { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+#enemy-img { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120px; height: 120px; image-rendering: pixelated; display: none; z-index: 10; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.8)); }
+.cave-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, rgba(0,0,0,0) 30%, rgba(0,0,0,0.8) 100%); pointer-events: none; z-index: 5; }
+
+/* =========================================
+   ミニマップ (改修版: 高視認性・デジタル風)
+   ========================================= */
+#map-wrapper { 
+    grid-area: 2 / 1 / 3 / 2; 
+    justify-self: center; 
+    width: 140px; /* サイズアップ */
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    backdrop-filter: blur(2px);
+}
+
+#floor-display { 
+    font-size: 0.85em; 
+    color: #ffd700; 
+    border-bottom: 1px solid #555; 
+    width: 100%; 
+    text-align: center; 
+    margin-bottom: 8px; 
+    padding-bottom: 2px;
+    font-family: monospace;
+    letter-spacing: 1px;
+}
+
+#map-area { 
+    width: 120px; 
+    height: 120px; 
+    display: grid; 
+    grid-template-columns: repeat(10, 1fr); 
+    grid-template-rows: repeat(10, 1fr); 
+    background: #000; 
+    gap: 1px; /* グリッド線を作る */
+    border: 2px solid #333;
+}
+
+.cell { 
+    width: 100%; 
+    height: 100%; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    font-size: 8px; /* 文字サイズ調整 */
+    color: transparent; /* 基本は文字を隠して色で識別させる */
+    overflow: hidden;        
+    padding: 0;
+    transition: background-color 0.2s;
+}
+
+/* --- マスの色分け定義 --- */
+
+/* 未踏破: 真っ黒 */
+.cell-unknown { 
+    background-color: #050505; 
+}
+
+/* 床 (踏破済み): 薄い青グレーで「通れる場所」を明確に */
+.cell-floor { 
+    background-color: #3a4a5a; 
+    box-shadow: inset 0 0 2px rgba(0,0,0,0.5);
+}
+
+/* 壁: 濃い色だが、未踏破よりは明るくして「壁があること」を示す */
+.cell-wall { 
+    background-color: #555; 
+    /* 斜線パターンを入れて壁っぽさを出す（任意） */
+    background-image: linear-gradient(45deg, #444 25%, transparent 25%, transparent 50%, #444 50%, #444 75%, transparent 75%, transparent);
+    background-size: 4px 4px;
+}
+
+/* --- イベント・オブジェクト (文字色を表示してアイコン化) --- */
+.cell-stairs { 
+    background-color: #3a4a5a; /* 床ベース */
+    color: #0ff !important; /* 水色 */
+    font-weight: bold;
+}
+
+.cell-chest { 
+    background-color: #3a4a5a; 
+    color: #ffd700 !important; /* 金色 */
+    text-shadow: 0 0 2px #fa0;
+}
+
+.cell-event { 
+    background-color: #3a4a5a; 
+    color: #f5f !important; /* ピンク */
+}
+
+.cell-boss { 
+    background-color: #500; 
+    color: #fff !important;
+}
+
+.cell-entrance { 
+    background-color: #3a4a5a;
+    color: #0f0 !important; /* 緑 */
+}
+
+/* --- ヒーロー (現在地) --- */
+.cell-hero { 
+    background-color: #f00 !important; /* 赤背景で目立たせる */
+    color: #fff !important; 
+    font-weight: bold; 
+    border-radius: 2px;
+    box-shadow: 0 0 8px #f00; /* 光らせる */
+    animation: blink-hero 1s infinite alternate; /* 点滅アニメ */
+    z-index: 2;
+}
+
+/* 点滅アニメーション定義 */
+@keyframes blink-hero {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0.7; transform: scale(0.9); }
+}
+
+/* ステータスエリア */
+#status { 
+    grid-area: 2 / 2 / 3 / 3; 
+    font-size: 0.9em; 
+    padding: 8px; 
+    background: #1e1e1e; 
+    border: 1px solid #333; 
+    border-radius: 5px;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: flex-start; 
+}
+.party-status { display: flex; flex-direction: column; width: 100%; gap: 3px; }
+.ps-row { display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding: 3px 0; width: 100%; }
+.status-right-col { text-align: right; min-width: 100px; display: flex; flex-direction: column; justify-content: space-between; }
+.location-info { font-family: monospace; color: #aaa; font-size: 0.85em; }
+
+/* ログ・メッセージ */
+#battle-msg { grid-column: 1 / -1; padding: 8px; font-size: 1em; text-align: center; background: linear-gradient(90deg, #024, #048, #024); border: 2px solid #05a; display: none; margin-top: 5px; border-radius: 5px; font-weight: bold; color: #fff; }
+#log { grid-column: 1 / -1; height: 12vh; min-height: 100px; overflow-y: auto; font-size: 0.85em; background: #111; padding: 8px; border: 1px solid #333; margin-top: 5px; border-radius: 5px; }
+#log p { margin: 4px 0; border-bottom: 1px solid #222; line-height: 1.4; }
+
+/* 町のログ用ボックス */
+.log-box {
+    margin: 10px auto;
+    width: 90%;
+    max-width: 600px;
+    height: 100px;
+    overflow-y: auto;
+    background: #000;
+    border: 1px solid #333;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: left;
+    box-sizing: border-box;
+}
+
+/* コントローラー */
+.controls { grid-column: 1 / -1; padding: 10px; align-self: end; display: none; gap: 10px; width: 100%; justify-content: center; }
+.move-pad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; max-width: 400px; margin: 0 auto; }
+.battle-pad { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 500px; margin: 0 auto; }
+.spell-pad { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 500px; margin: 0 auto; }
+
+/* ボタン */
+.btn { 
+    background: linear-gradient(180deg, #444, #222); 
+    color: #e0e0e0; 
+    border: 1px solid #666; 
+    border-radius: 6px; 
+    padding: 0 10px; 
+    height: 50px; 
+    font-size: 1em; 
+    font-weight: bold; 
+    cursor: pointer; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    user-select: none; 
+    touch-action: manipulation; 
+    width: 100%; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    transition: all 0.1s;
+}
+.btn:active { transform: translateY(2px); background: #111; box-shadow: none; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; background: #222; color: #555; border-color: #333; }
+
+/* ボタン色分け */
+.btn-atk { border-color: #f55; color: #faa; background: linear-gradient(180deg, #622, #311); }
+.btn-magic { border-color: #3ff; color: #aff; background: linear-gradient(180deg, #244, #122); }
+.btn-def { border-color: #55f; color: #aaf; background: linear-gradient(180deg, #226, #113); }
+.btn-go { border-color: #5f5; color: #afa; background: linear-gradient(180deg, #262, #131); }
+
+/* メニューボタン (汎用) */
+.menu-list { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 450px; margin: 20px auto; }
+.menu-btn { 
+    text-align: left; 
+    padding-left: 20px; 
+    justify-content: flex-start; 
+    font-size: 1.1em;
+    height: 55px;
+}
+
+/* オーバーレイ画面 (全画面) */
+#town-scene, #shop-scene, #temple-scene, #prologue-scene, #camp-overlay, #sub-menu-overlay, #status-scene, #world-map-scene { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: #121212; 
+    z-index: 2000;  /* ← ここを100から2000に変更！ */
+    display: none; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+}
+
+#prologue-scene { display: flex; }
+
+.grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+
+/* ステータスカード */
+.status-card { background: #222; border: 1px solid #555; padding: 10px; margin-bottom: 8px; width: 100%; display: flex; align-items: center; text-align: left; font-size: 0.9em; box-sizing: border-box; border-radius: 5px; }
+.status-info { flex: 1; line-height: 1.4; }
+.detail-stats { display: grid; grid-template-columns: 1fr 1fr; margin-top: 10px; border-top: 1px solid #444; padding-top: 10px; gap: 5px; }
+
+/* スクロールリスト */
+.scroll-list { max-height: 40vh; overflow-y: auto; border: 1px solid #333; margin: 15px 0; width: 100%; background: #000; border-radius: 5px; padding: 5px; }
+
+/* =========================================
+   道具屋UIのスタイル
+   ========================================= */
+.shop-item {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #333;
+    padding: 8px 5px;
+    width: 100%;
+    box-sizing: border-box;
+}
+.shop-info {
+    flex: 1;
+    margin-right: 10px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.shop-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3px;
+}
+.shop-name { font-weight: bold; color: #eee; font-size: 1em; }
+.shop-price { color: #ffd700; font-family: monospace; font-weight: bold; }
+.shop-desc { font-size: 0.75em; color: #aaa; line-height: 1.2; }
+.shop-btn {
+    width: auto !important;
+    height: 36px;
+    min-width: 60px;
+    font-size: 0.9em;
+    padding: 0 10px;
+    background: linear-gradient(180deg, #262, #131);
+    border-color: #4f4;
+    color: #cfc;
+    margin: 0;
+}
+.shop-btn:active { background: #131; transform: translateY(2px); }
+
+/* =========================================
+   VFX (エフェクト) & アニメーション
+   ========================================= */
+.vfx-slash { 
+    position: absolute; 
+    width: 200px; 
+    height: 4px; 
+    background: #fff; 
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg); 
+    animation: anim-slash 0.2s forwards; 
+    z-index: 20;
+}
+.vfx-fire, .vfx-heal { top: 0; left: 0; }
+.vfx-damage {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 0, 0, 0.4);
+    animation: anim-flash 0.2s forwards;
+    z-index: 30;
+    pointer-events: none;
+}
+
+@keyframes anim-slash { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes anim-flash { 0% { opacity: 0; } 20% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes anim-fade { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
+
+.shake-enemy { animation: shake 0.4s; } 
+.shake-screen { animation: shake 0.4s; }
+@keyframes shake { 
+    0% { transform: translate(-50%, -50%); } 
+    25% { transform: translate(calc(-50% - 5px), calc(-50% + 5px)); } 
+    50% { transform: translate(-50%, -50%); } 
+    75% { transform: translate(calc(-50% + 5px), calc(-50% - 5px)); } 
+    100% { transform: translate(-50%, -50%); } 
+}
+
+/* =========================================
+   町画面のリッチデザイン
+   ========================================= */
+#town-scene {
+    background-color: #050510;
+    background-image: 
+        linear-gradient(335deg, rgba(0,0,0,0.3) 23px, transparent 23px),
+        linear-gradient(155deg, rgba(0,0,0,0.3) 23px, transparent 23px),
+        linear-gradient(335deg, rgba(0,0,0,0.3) 23px, transparent 23px),
+        linear-gradient(155deg, rgba(0,0,0,0.3) 23px, transparent 23px);
+    background-size: 58px 58px;
+    background-position: 0px 2px, 4px 35px, 29px 31px, 34px 6px;
+}
+.town-box {
+    background: rgba(20, 20, 30, 0.9);
+    border: 1px solid #555;
+    box-shadow: 0 0 30px rgba(0,0,0,1), inset 0 0 50px rgba(0,0,0,0.5);
+    border-radius: 12px;
+    padding: 20px;
+    max-width: 550px;
+    width: 95%;
+    backdrop-filter: blur(5px);
+    position: relative;
+    z-index: 10;
+}
+.town-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 10px;
+}
+.town-title {
+    display: flex;
+    align-items: center;
+    text-align: left;
+    color: #eee;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(255,255,255,0.2);
+}
+.town-gold-badge {
+    background: linear-gradient(180deg, #222, #000);
+    border: 1px solid #444;
+    padding: 5px 15px;
+    border-radius: 20px;
+    text-align: right;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.8);
+}
+.town-menu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+.town-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    height: 70px !important;
+    padding: 0 15px;
+    background: linear-gradient(145deg, #3a3a4a, #222);
+    border: 1px solid #555;
+    border-left: 4px solid #777;
+    transition: all 0.2s;
+}
+.town-action-btn:active { transform: scale(0.98); }
+.town-action-btn:nth-child(1) { border-left-color: #55f; }
+.town-action-btn:nth-child(2) { border-left-color: #f55; }
+.town-action-btn:nth-child(3) { border-left-color: #d5f; }
+.town-action-btn:nth-child(4) { border-left-color: #5f5; }
+.btn-icon {
+    font-size: 2em;
+    margin-right: 12px;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+}
+.btn-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.2;
+}
+.btn-text .main { font-size: 1.1em; font-weight: bold; color: #fff; }
+.btn-text .sub { font-size: 0.75em; color: #aaa; }
+.system-btn {
+    width: 100%;
+    background: #111;
+    color: #ccc;
+    height: 50px !important;
+    border: 1px dashed #444;
+}
+.town-log-style {
+    background: rgba(0,0,0,0.6);
+    border: none;
+    border-top: 1px solid #333;
+    color: #ccc;
+    font-style: italic;
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 600px;
+    height: 80px;
+}
+
+/* =========================================
+   スマホ・縦画面対応 (HP位置調整 & ボタン修正版)
+   ========================================= */
+@media (max-width: 768px) {
+    /* 1. 全体設定 */
+    body {
+        padding: 0;
+        margin: 0;
+        align-items: flex-start;
+        background: #000;
+        height: 100dvh;
+        overflow: hidden;
+    }
+
+    /* 2. ゲーム画面のグリッド再定義 */
+    #game-container {
+        width: 100vw;
+        max-width: none;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        gap: 0;
+        border: none;
+        grid-template-rows: 32vh auto minmax(0, 1fr) auto;
+        grid-template-columns: 80px 1fr;
+    }
+
+    /* 3. 3Dビュー */
+    #main-area {
+        grid-column: 1 / -1;
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        border: none;
+        border-bottom: 2px solid #333;
+        box-sizing: border-box;
+    }
+    #dungeon-canvas {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    /* 4. マップエリア */
+    #map-wrapper { width: 90px; padding: 4px; }
+    #map-area { width: 80px; height: 80px; gap: 0.5px; }
+    .cell { font-size: 6px; }
+
+    /* 5. ステータスエリア */
+    #status {
+        width: 100%;
+        padding: 2px 5px;
+        box-sizing: border-box;
+        border: none;
+        background: transparent;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        font-size: 0.8em;
+    }
+    .status-right-col {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2px;
+    }
+    /* ② HP位置調整: 右paddingを 25px に設定 */
+    .ps-row { 
+        padding: 2px 25px 2px 4px; 
+    }
+
+    /* 6. ログエリア */
+    #log {
+        grid-column: 1 / -1;
+        width: 98%;
+        margin: 2px auto;
+        padding: 4px;
+        font-size: 0.8em;
+        background: rgba(0,0,0,0.6);
+        border: 1px solid #333;
+        overflow-y: auto;
+    }
+    #battle-msg { margin: 0; padding: 2px; font-size: 0.9em; }
+
+    /* 7. コントローラー */
+    .controls {
+        width: 100%;
+        padding: 2px 2px 5px 2px;
+        box-sizing: border-box;
+        align-self: end;
+        gap: 3px;
+        background: #0a0a0f;
+        z-index: 20;
+        border-top: 1px solid #333;
+    }
+    .btn { height: 42px; font-size: 0.9em; margin: 0; }
+    .move-pad { gap: 3px; margin-bottom: 0; }
+    #btn-return {
+        /* height: 38px;  ←削除 (他のボタンと同じ42pxになります) */
+        /* margin-top: 2px; ←削除 (グリッドのgapで調整されます) */
+        background: linear-gradient(180deg, #550, #330);
+        border-color: #cc0;
+        color: #ffeb3b;
+    }
+
+    /* その他 */
+    .screen-box {
+        width: 96%;
+        padding: 10px;
+        max-height: 85vh;
+        overflow-y: auto;
+        justify-content: flex-start;
+    }
+    .town-menu-grid { gap: 8px; }
+    .town-action-btn { height: 60px !important; }
+.battle-pad {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    /* ★重要: 以前の「逃げるボタンを2列分にする」設定を打ち消す */
+    #battle-controls button:last-child {
+        grid-column: auto !important;
+    }
+}
+/* =========================================
+   全体デザイン・リファイン (All UI Overhaul)
+   ========================================= */
+
+/* 1. 背景の統一 (全体にダークなパターンを適用) */
+body {
+    background-color: #050510;
+    background-image: 
+        linear-gradient(335deg, rgba(255,255,255,0.03) 23px, transparent 23px),
+        linear-gradient(155deg, rgba(255,255,255,0.03) 23px, transparent 23px),
+        linear-gradient(335deg, rgba(255,255,255,0.03) 23px, transparent 23px),
+        linear-gradient(155deg, rgba(255,255,255,0.03) 23px, transparent 23px);
+    background-size: 58px 58px;
+    background-position: 0px 2px, 4px 35px, 29px 31px, 34px 6px;
+}
+
+/* 2. 共通ウィンドウ枠の高級化 (ガラスモーフィズム) */
+.screen-box {
+    background: rgba(20, 22, 30, 0.95); /* 濃い黒背景 */
+    border: 1px solid #555;
+    box-shadow: 
+        0 0 20px rgba(0,0,0,0.8), 
+        inset 0 0 60px rgba(0,0,0,0.5),
+        0 0 0 1px rgba(255,255,255,0.1); /* 内側のハイライト */
+    border-radius: 8px;
+    backdrop-filter: blur(4px);
+    color: #eee;
+}
+
+/* タイトル文字の装飾 */
+h2 {
+    border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    font-family: "Sawarabi Gothic", serif;
+    letter-spacing: 2px;
+}
+
+/* --- プロローグ画面 (タイトル画面) --- */
+#prologue-scene .screen-box {
+    background: transparent; /* 枠を消して背景を見せる */
+    border: none;
+    box-shadow: none;
+    animation: fadeIn 2s ease-in;
+}
+#prologue-scene h1 {
+    font-size: 3em;
+    text-shadow: 0 0 20px #ffd700, 0 0 40px #ff5500;
+    margin-bottom: 30px;
+    letter-spacing: 5px;
+}
+#prologue-scene .story-content {
+    background: rgba(0,0,0,0.7);
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #444;
+    margin-bottom: 30px !important;
+    line-height: 2;
+}
+#prologue-scene .btn {
+    height: 60px;
+    font-size: 1.2em;
+    background: linear-gradient(90deg, #622, #a44, #622);
+    border: 1px solid #f88;
+    box-shadow: 0 0 15px rgba(255,0,0,0.5);
+}
+
+/* --- ダンジョン画面のUI強化 --- */
+
+/* 3Dビュー枠 */
+#main-area {
+    border: 4px solid #2a2a2a; /* 太い枠 */
+    border-radius: 4px;
+    box-shadow: inset 0 0 20px #000;
+    position: relative;
+}
+/* 枠に金属っぽい質感を追加 */
+#main-area::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border: 1px solid rgba(255,255,255,0.2);
+    pointer-events: none;
+    z-index: 100;
+}
+
+/* ダンジョン内ステータス (パネル風) */
+#status {
+    background: linear-gradient(180deg, #222, #111);
+    border: 1px solid #444;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+    padding: 5px;
+}
+/* パーティメンバー行 */
+.ps-row {
+    background: rgba(0,0,0,0.3);
+    border-bottom: 1px solid #333;
+    padding: 4px 6px;
+    margin-bottom: 2px;
+    border-radius: 4px;
+}
+.job-badge-sm {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    background: #444;
+    color: #fff;
+    font-size: 10px;
+    text-align: center;
+    border-radius: 3px;
+    margin-right: 5px;
+    border: 1px solid #666;
+}
+
+/* ログ・メッセージエリア */
+#log {
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid #333;
+    border-left: 4px solid #555; /* 左にアクセント */
+}
+#battle-msg {
+    background: linear-gradient(90deg, rgba(0,0,50,0.8), rgba(0,50,100,0.9), rgba(0,0,50,0.8));
+    border: 1px solid #4af;
+    text-shadow: 0 0 5px #0ff;
+}
+
+/* コントローラーエリアの背景をなじませる */
+.controls {
+    background: rgba(10, 10, 15, 0.95); /* ほぼ不透明にしてボタンを見やすく */
+    border-top: 1px solid #333;
+}
+
+/* --- 各施設のテーマカラー設定 --- */
+
+/* 道具屋 (Shop) - 暖色系 */
+#shop-scene .screen-box {
+    border-color: #853;
+    box-shadow: 0 0 30px rgba(100, 50, 0, 0.5), inset 0 0 50px rgba(50, 20, 0, 0.5);
+}
+#shop-scene h2 { color: #fb8; border-bottom-color: #a64; }
+
+/* 神殿 (Temple) - 神秘的な青紫系 */
+#temple-scene .screen-box {
+    border-color: #44a;
+    box-shadow: 0 0 30px rgba(0, 50, 150, 0.5), inset 0 0 50px rgba(0, 10, 50, 0.5);
+}
+#temple-scene h2 { color: #aaf; text-shadow: 0 0 10px #00f; border-bottom-color: #44a; }
+
+/* キャンプ・メニュー (Camp) - ニュートラルグレー */
+#camp-overlay .screen-box, #sub-menu-overlay .screen-box {
+    border-color: #666;
+    max-width: 400px; /* 少し幅を狭めてメニューっぽく */
+}
+
+/* ステータス画面 (Status) - テクニカルな緑系 */
+#status-scene .screen-box {
+    border-color: #363;
+    box-shadow: 0 0 30px rgba(0, 50, 0, 0.5);
+}
+#status-scene h2 { color: #8f8; border-bottom-color: #262; }
+
+/* --- ボタンの高級化 --- */
+.btn {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 4px 0 rgba(0,0,0,0.5), 0 5px 10px rgba(0,0,0,0.5);
+    text-shadow: 1px 1px 0 #000;
+    transition: all 0.1s;
+}
+/* クリック時の沈み込み */
+.btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.5), inset 0 0 10px rgba(0,0,0,0.5);
+}
+/* ボタン表面の光沢感 */
+.btn::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 50%;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.1), transparent);
+    pointer-events: none;
+}
+
+/* 閉じる・戻るボタンの統一スタイル */
+button[onclick^="close"], button[onclick^="exit"], button[onclick^="return"] {
+    background: linear-gradient(180deg, #333, #111);
+    border-color: #555;
+    color: #ccc;
+}
+
+/* フェードインアニメーション */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+/* =========================================
+   Bug修正: 攻撃被弾時の画面揺れ定義
+   ========================================= */
+
+/* 画面全体を揺らす専用のアニメーションを定義 */
+@keyframes shake-screen-anim { 
+    0% { transform: translate(0, 0); } 
+    25% { transform: translate(-5px, 5px); } 
+    50% { transform: translate(0, 0); } 
+    75% { transform: translate(5px, -5px); } 
+    100% { transform: translate(0, 0); } 
+}
+
+/* .shake-screen クラスが適用された時は、上記のアニメーションを使う */
+.shake-screen { 
+    animation: shake-screen-anim 0.4s; 
+}
+
+/* 敵の画像はこれまで通り「中央寄せ(-50%)」を維持したまま揺らす */
+.shake-enemy { 
+    animation: shake 0.4s; 
+}
+/* --- 神殿UIのリニューアル --- */
+.temple-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin: 15px 0;
+}
+
+.temple-card {
+    background: #222;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 10px 5px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0.7;
+}
+.temple-card:hover { opacity: 1; border-color: #8ff; }
+.temple-card.selected-card {
+    opacity: 1;
+    border: 2px solid #0ff;
+    background: #002233;
+    box-shadow: 0 0 10px #0ff;
+}
+
+.temple-icon {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: #000;
+    margin-bottom: 5px;
+}
+.temple-name { font-weight: bold; font-size: 0.9em; color: #fff; }
+.temple-meta { font-size: 0.7em; color: #aaa; }
+
+.lvl-up-badge {
+    position: absolute;
+    top: -5px; right: -5px;
+    background: #f00; color: #fff;
+    font-size: 0.7em; font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 10px;
+    animation: bounce 1s infinite;
+}
+@keyframes bounce { 0%, 100% {transform:translateY(0);} 50% {transform:translateY(-3px);} }
+
+/* 神殿のアクションボタン */
+.temple-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+.temple-btn {
+    height: 60px !important;
+    flex-direction: column;
+    background: linear-gradient(180deg, #244, #122);
+    border-color: #4aa;
+}
+.temple-btn .main { font-size: 1.1em; color: #aff; }
+.temple-btn .sub { font-size: 0.75em; color: #8aa; }
+/* =========================================
+   転職画面のUI強化
+   ========================================= */
+
+/* ジョブ選択ボタンのグリッド化 */
+#job-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr; /* 4つ横並び */
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+/* 個別のジョブボタン */
+.job-card-btn {
+    height: 80px !important; /* 少し高さを出す */
+    flex-direction: column;
+    justify-content: center;
+    background: #222;
+    border: 1px solid #444;
+    opacity: 0.6;
+    transition: all 0.2s;
+}
+
+/* 選択中のジョブボタン */
+.job-card-btn.active-job {
+    opacity: 1;
+    background: linear-gradient(180deg, #224, #002);
+    border: 2px solid #4af;
+    box-shadow: 0 0 10px #4af;
+    transform: translateY(-2px);
+}
+
+/* 詳細情報パネル全体 */
+.job-info-panel {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: left;
+    animation: fadeIn 0.3s ease;
+}
+
+/* 詳細情報のグリッド（ステータスと特徴を左右に） */
+.job-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 10px;
+}
+
+/* 個別の情報ボックス */
+.detail-box {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 8px;
+    border-radius: 5px;
+}
+
+.detail-label {
+    font-size: 0.7em;
+    color: #aaa;
+    border-bottom: 1px solid #555;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+/* ステータス行 */
+.stat-bar-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85em;
+    margin-bottom: 2px;
+    color: #ccc;
+}
+.stat-val {
+    color: #ffd700;
+    font-weight: bold;
+}
+
+/* スマホ対応：ジョブボタンを2列にする */
+@media (max-width: 768px) {
+    #job-buttons {
+        grid-template-columns: 1fr 1fr; /* 2列に */
+    }
+    .job-detail-grid {
+        grid-template-columns: 1fr; /* 縦積みに */
+    }
+}
+
+/* --- 修正・追加 --- */
+
+/* 呪文メニューが溢れないようにスクロール可能にする */
+#spell-controls {
+    max-height: 25vh;       /* 画面高さの1/4程度までに制限 */
+    overflow-y: auto;       /* 縦スクロールを有効化 */
+    align-content: start;   /* ボタンを上詰めで表示 */
+
+    /* ★修正: 余白をさらに拡大 + iPhone等のホームバー領域(safe-area)を計算に含める */
+    padding-bottom: calc(60px + env(safe-area-inset-bottom));
+    box-sizing: border-box; /* パディングを高さ計算に含める */
+
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y; /* 縦スクロールを明示的に許可 */
+}
+
+/* ★追加: 最後のボタン（戻るボタン）の下に強制的に余白を作る */
+#spell-controls button:last-child {
+    margin-bottom: 20px;
+}
+
+#spell-controls button {
+    touch-action: pan-y;
+}
+
+/* スマホ縦画面時の微調整 */
+@media (max-width: 768px) {
+    #spell-controls {
+        max-height: 250px; /* ★修正: 表示領域を少し広げる */
+    }
+}
