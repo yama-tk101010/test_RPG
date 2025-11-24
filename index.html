@@ -89,15 +89,11 @@
         <div class="screen-box">
             <h2>🌏 ワールドマップ</h2>
             <p>どこへ向かいますか？</p>
-            <div class="menu-list">
-                <button class="btn menu-btn" onclick="goToDungeon(1)">🏰 地下迷宮 (推奨Lv1~)</button>
-                <button class="btn menu-btn" style="color:#8f8; border-color:#5f5;" onclick="goToDungeon(10)">🌲 迷いの森 (推奨Lv3~)</button>
-                <button class="btn menu-btn" style="color:#88f; border-color:#55f;" onclick="goToDungeon(20)">🌊 海底洞窟 (推奨Lv5~)</button>
-                <button class="btn menu-btn" style="color:#fd8; border-color:#da4;" onclick="goToDungeon(30)">🏛️ 古代神殿 (推奨Lv8~)</button>
-                <button class="btn menu-btn" style="color:#d8f; border-color:#a4d;" onclick="goToDungeon(40)">🗼 天空の塔 (推奨Lv10~)</button>
-            </div>
+            <div id="world-map-list" class="menu-list"></div>
+            
             <button class="btn" onclick="closeWorldMap()" style="margin-top:20px;">町へ戻る</button>
         </div>
+    </div>
     </div>
 
     <div id="shop-scene" style="display: none;">

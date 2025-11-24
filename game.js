@@ -717,7 +717,43 @@ function returnToTown(force=false) {
     document.getElementById('dungeon-scene').style.display = 'none'; document.getElementById('town-scene').style.display = 'block';
     updateTownStatus(); if(!force) townLog("町へ戻った。");
 }
-function openWorldMap() { document.getElementById('town-scene').style.display = 'none'; document.getElementById('world-map-scene').style.display = 'flex'; }
+function openWorldMap() { 
+    document.getElementById('town-scene').style.display = 'none'; 
+    document.getElementById('world-map-scene').style.display = 'flex'; 
+
+    const list = document.getElementById('world-map-list');
+    list.innerHTML = '';
+
+    // ダンジョン定義 (IDは goToDungeon の引数に合わせる)
+    const dungeons = [
+        {id: 1,  realId: 1, label: "🏰 地下迷宮 (推奨Lv1~)", style: ""},
+        {id: 10, realId: 2, label: "🌲 迷いの森 (推奨Lv3~)", style: "color:#8f8; border-color:#5f5;"},
+        {id: 20, realId: 3, label: "🌊 海底洞窟 (推奨Lv5~)", style: "color:#88f; border-color:#55f;"},
+        {id: 30, realId: 4, label: "🏛️ 古代神殿 (推奨Lv8~)", style: "color:#fd8; border-color:#da4;"},
+        {id: 40, realId: 5, label: "🗼 天空の塔 (推奨Lv10~)", style: "color:#d8f; border-color:#a4d;"}
+    ];
+
+    dungeons.forEach(d => {
+        // クリア済み判定 (clearedDungeonsには realId [1~5] が入っている)
+        const isCleared = clearedDungeons.includes(d.realId);
+        
+        // バッジ生成
+        let badge = "";
+        if(isCleared) {
+            badge = " <span style='color:#ffd700; font-weight:bold; font-size:0.8em; margin-left:5px;'>★討伐済</span>";
+        }
+
+        const btn = document.createElement('button');
+        btn.className = "btn menu-btn";
+        if(d.style) btn.style.cssText = d.style;
+        btn.onclick = () => goToDungeon(d.id);
+        
+        // ラベルとバッジを結合
+        btn.innerHTML = d.label + badge;
+        
+        list.appendChild(btn);
+    });
+}
 function closeWorldMap() { document.getElementById('world-map-scene').style.display = 'none'; document.getElementById('town-scene').style.display = 'block'; }
 
 function goToDungeon(dId) {
