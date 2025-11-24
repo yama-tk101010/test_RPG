@@ -658,7 +658,7 @@ h1, h2 {
 
     /* ★重要: 以前の「逃げるボタンを2列分にする」設定を打ち消す */
     #battle-controls button:last-child {
-        grid-column: auto !important;
+        grid-column: 3 !important;
     }
 }
 /* =========================================
