@@ -112,14 +112,19 @@ h1, h2 {
     letter-spacing: 1px;
 }
 
+/* --- ミニマップ (周囲のみ表示) --- */
 #map-area { 
-    width: 120px; 
-    height: 120px; 
+    /* マップ自体のサイズ */
+    width: 135px; /* 少し大きくして見やすく */
+    height: 135px; 
+    
     display: grid; 
-    grid-template-columns: repeat(10, 1fr); 
-    grid-template-rows: repeat(10, 1fr); 
+    /* ★修正: 全体表示ではなく、9x9のビューポートにする */
+    grid-template-columns: repeat(9, 1fr); 
+    grid-template-rows: repeat(9, 1fr); 
+    
     background: #000; 
-    gap: 1px; /* グリッド線を作る */
+    gap: 1px; 
     border: 2px solid #333;
 }
 
@@ -134,6 +139,15 @@ h1, h2 {
     overflow: hidden;        
     padding: 0;
     transition: background-color 0.2s;
+}
+
+/* --- ショートカット扉 (仮) --- */
+.cell-door {
+    background-color: #8B4513; /* 茶色 */
+    border: 1px solid #ccc;
+    color: #fff !important;
+    font-weight: bold;
+    z-index: 1;
 }
 
 /* --- マスの色分け定義 --- */
@@ -1062,4 +1076,91 @@ button[onclick^="close"], button[onclick^="exit"], button[onclick^="return"] {
     #spell-controls {
         max-height: 250px; /* ★修正: 表示領域を少し広げる */
     }
+}
+
+
+/* =========================================
+   敵撃破エフェクト
+   ========================================= */
+@keyframes enemy-death-anim {
+    0% { 
+        opacity: 1; 
+        transform: translate(-50%, -50%) scale(1); 
+        filter: brightness(1); 
+    }
+    20% { 
+        opacity: 1; 
+        transform: translate(-50%, -50%) scale(1.2); 
+        filter: brightness(10); /* ピカッと光る */
+    }
+    100% { 
+        opacity: 0; 
+        transform: translate(-50%, -50%) scale(0.1); 
+        filter: brightness(0); 
+    }
+}
+
+.enemy-die {
+    animation: enemy-death-anim 0.6s forwards; /* 0.6秒かけて消える */
+    pointer-events: none; /* クリック判定を消す */
+}
+
+/* 敵の行動・味方の被害ログ (薄い赤色) */
+.log-enemy { 
+    color: #ff8888; 
+}
+
+
+/* =========================================
+   拡大マップ (Large Map)
+   ========================================= */
+#large-map-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9); /* 背景を暗く */
+    z-index: 100; /* 最前面に表示 */
+    display: none; /* 初期状態は非表示 */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+}
+
+/* --- 拡大マップ (全体表示) --- */
+#large-map-grid {
+    display: grid;
+    /* ★修正: 20x20に対応 */
+    grid-template-columns: repeat(20, 1fr);
+    grid-template-rows: repeat(20, 1fr);
+    
+    /* ▼▼▼ 修正箇所 ▼▼▼ */
+    /* 画面の短辺（縦か横の小さい方）の90%サイズにする */
+    width: 90vmin;
+    height: 90vmin;
+    
+    /* PCなどで大きくなりすぎないように最大値を設定 */
+    max-width: 600px;
+    max-height: 600px;
+    /* ▲▲▲ 修正箇所 ▲▲▲ */
+
+    aspect-ratio: 1 / 1; 
+    gap: 1px;
+    background: #222;
+    border: 2px solid #555;
+    padding: 2px;
+}
+
+/* 拡大マップ用のセル微調整 */
+#large-map-grid .cell {
+    /* マップ全体の大きさに応じて文字サイズを変える */
+    font-size: clamp(8px, 3vmin, 24px); 
+    /* または単純に小さくするなら font-size: 10px; などでも可 */
+}
+
+/* 拡大マップでは未踏破エリアを少し透かすなどしても良い */
+#large-map-grid .cell-unknown {
+    background-color: #111;
 }

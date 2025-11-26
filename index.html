@@ -178,10 +178,15 @@
         <div id="game-container">
             <div id="main-area">
                 <canvas id="dungeon-canvas" width="300" height="200"></canvas>
-                <img id="enemy-img" src="" alt="">
-                <div id="vfx-layer"></div>
-                <div class="cave-overlay"></div>
-            </div>
+    <img id="enemy-img" src="" alt="">
+    <div id="vfx-layer"></div>
+    <div class="cave-overlay"></div>
+    
+    <div id="large-map-overlay" style="display: none;" onclick="closeLargeMap()">
+        <div id="large-map-grid"></div>
+        <div style="margin-top:5px; color:#aaa; font-size:0.8em;">タップして閉じる</div>
+    </div>
+    </div>
 
             <div id="map-wrapper">
                 <div id="floor-display"></div>
@@ -212,7 +217,7 @@
                 <button class="btn" onclick="openCamp('dungeon')">⛺ メニュー</button>
                 <button class="btn" onclick="turnPlayer('right')">🔃 右を向く</button>
 
-                <div></div>
+                <button class="btn" onclick="toggleLargeMap()">🗺️ 地図</button>
                 <button class="btn" onclick="movePlayer('backward')">⬇️ 後退</button>
                 <button id="btn-return" class="btn" style="display:none; color:#ff0; font-size:0.8em; padding:0;" onclick="returnToTown()">🏠 戻る</button>
             </div>
