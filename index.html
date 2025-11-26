@@ -177,21 +177,14 @@
     <div id="dungeon-scene" style="display: none;">
         <div id="game-container">
             <div id="main-area">
-                <canvas id="dungeon-canvas" width="300" height="200"></canvas>
+    <canvas id="dungeon-canvas" width="300" height="200"></canvas>
     <img id="enemy-img" src="" alt="">
     <div id="vfx-layer"></div>
     <div class="cave-overlay"></div>
-    
-    <div id="large-map-overlay" style="display: none;" onclick="closeLargeMap()">
-        <div id="large-map-grid"></div>
-        <div style="margin-top:5px; color:#aaa; font-size:0.8em;">タップして閉じる</div>
-    </div>
-    </div>
-
-            <div id="map-wrapper">
-                <div id="floor-display"></div>
-                <div id="map-area"></div>
-            </div>
+</div> <div id="map-wrapper">
+    <div id="floor-display"></div>
+    <div id="map-area"></div>
+</div>
 
             <div id="status">
                 <div class="party-status" id="dungeon-party-status"></div>
@@ -247,6 +240,12 @@
         </div>
     </div>
 
+    <div id="large-map-overlay" style="display: none;" onclick="closeLargeMap()">
+        <div id="large-map-grid"></div>
+        <div style="margin-top:15px; color:#fff; font-weight:bold; background:rgba(0,0,0,0.5); padding:5px 10px; border-radius:5px;">
+            タップして閉じる
+        </div>
+    </div>
     <script src="game.js"></script>
 </body>
 </html>

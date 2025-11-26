@@ -1115,49 +1115,46 @@ button[onclick^="close"], button[onclick^="exit"], button[onclick^="return"] {
    拡大マップ (Large Map)
    ========================================= */
 #large-map-overlay {
-    position: absolute;
+    position: fixed; /* absolute から fixed に変更 */
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.9); /* 背景を暗く */
-    z-index: 100; /* 最前面に表示 */
-    display: none; /* 初期状態は非表示 */
+    width: 100vw;  /* 画面の横幅いっぱい */
+    height: 100vh; /* 画面の縦幅いっぱい */
+    background: rgba(0, 0, 0, 0.95); /* 背景をより濃く */
+    z-index: 5000; /* 最前面に表示 */
+    
+    display: none;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(5px);
 }
 
 /* --- 拡大マップ (全体表示) --- */
 #large-map-grid {
     display: grid;
-    /* ★修正: 20x20に対応 */
     grid-template-columns: repeat(20, 1fr);
     grid-template-rows: repeat(20, 1fr);
     
-    /* ▼▼▼ 修正箇所 ▼▼▼ */
-    /* 画面の短辺（縦か横の小さい方）の90%サイズにする */
-    width: 90vmin;
-    height: 90vmin;
+    /* 画面の短辺の95%のサイズで表示 */
+    width: 95vmin;
+    height: 95vmin;
     
-    /* PCなどで大きくなりすぎないように最大値を設定 */
-    max-width: 600px;
-    max-height: 600px;
-    /* ▲▲▲ 修正箇所 ▲▲▲ */
+    /* PCで見ても大きくなりすぎないように制限 */
+    max-width: 650px;
+    max-height: 650px;
 
-    aspect-ratio: 1 / 1; 
     gap: 1px;
     background: #222;
-    border: 2px solid #555;
-    padding: 2px;
+    border: 4px solid #777; /* 枠線を少し太く */
+    padding: 4px;
+    box-shadow: 0 0 30px rgba(0,0,0,1);
 }
 
 /* 拡大マップ用のセル微調整 */
 #large-map-grid .cell {
-    /* マップ全体の大きさに応じて文字サイズを変える */
-    font-size: clamp(8px, 3vmin, 24px); 
-    /* または単純に小さくするなら font-size: 10px; などでも可 */
+    /* マスの中の文字サイズ調整 */
+    font-size: clamp(8px, 2.5vmin, 20px);
 }
 
 /* 拡大マップでは未踏破エリアを少し透かすなどしても良い */
