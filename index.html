@@ -86,15 +86,17 @@
     </div>
 
     <div id="world-map-scene" style="display: none;">
-        <div class="screen-box">
-            <h2>🌏 ワールドマップ</h2>
-            <p>どこへ向かいますか？</p>
-            <div id="world-map-list" class="menu-list"></div>
-            
-            <button class="btn" onclick="closeWorldMap()" style="margin-top:20px;">町へ戻る</button>
-        </div>
+    <div class="screen-box">
+        <h2>🌏 ワールドマップ</h2>
+        <p>冒険の舞台</p>
+        
+        <canvas id="world-map-canvas" width="300" height="150"></canvas>
+        
+        <div id="world-map-list" class="menu-list"></div>
+        
+        <button class="btn" onclick="closeWorldMap()" style="margin-top:20px;">町へ戻る</button>
     </div>
-    </div>
+</div>
 
     <div id="shop-scene" style="display: none;">
         <div class="screen-box">
@@ -116,15 +118,19 @@
 
             <div id="temple-action-area" style="display:none;">
                 <div class="temple-actions">
-                    <button class="btn temple-btn" onclick="checkLevelUp()">
-                        <div class="main">レベルアップ</div>
-                        <div class="sub" id="btn-lvl-sub">EXP確認</div>
-                    </button>
-                    <button class="btn temple-btn" onclick="showJobChange()">
-                        <div class="main">転職</div>
-                        <div class="sub">Lv1からやり直し</div>
-                    </button>
-                </div>
+    <button class="btn temple-btn" onclick="checkLevelUp()">
+        <div class="main">レベルアップ</div>
+        <div class="sub" id="btn-lvl-sub">EXP確認</div>
+    </button>
+    <button class="btn temple-btn" onclick="showJobChange()">
+        <div class="main">転職</div>
+        <div class="sub">Lv1からやり直し</div>
+    </button>
+    <button class="btn temple-btn" style="border-color:#a8f; background:linear-gradient(180deg, #324, #112);" onclick="checkRespec()">
+        <div class="main" style="color:#dcf;">能力再編</div>
+        <div class="sub">忘却の石を使用</div>
+    </button>
+</div>
 
                 <div id="job-select-area" style="display:none; margin-top:10px;">
                     <div class="grid-2col" id="job-buttons" style="display:grid; grid-template-columns:1fr 1fr; gap:5px;"></div>
