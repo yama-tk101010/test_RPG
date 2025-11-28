@@ -834,7 +834,7 @@ for (let d = 1; d <= 5; d++) {
                 // 20x20の全マスを true (訪問済み) に書き換え
                 for (let y = 0; y < 20; y++) {
                     for (let x = 0; x < 20; x++) {
-                        //visitedMaps[d][f][y][x] = true;
+                        visitedMaps[d][f][y][x] = true;
                     }
                 }
             }
@@ -844,11 +844,11 @@ for (let d = 1; d <= 5; d++) {
 
 // もしダンジョン画面にいれば、即座に画面を更新して反映
 if (document.getElementById('dungeon-scene').style.display === 'flex') {
-    //updateDungeonUI(); // ミニマップ更新
+    updateDungeonUI(); // ミニマップ更新
     
     // 拡大マップを開いている場合も更新
     if (document.getElementById('large-map-overlay').style.display === 'flex') {
-        //renderLargeMap();
+        renderLargeMap();
     }
 }
 
@@ -1207,7 +1207,7 @@ function returnToTown(force=false) {
     updateTownStatus(); if(!force) townLog("町へ戻った。");
 }
 function openWorldMap() { 
-clearedDungeons = []; //デバッグ
+clearedDungeons = [1]; //デバッグ
     document.getElementById('town-scene').style.display = 'none'; 
     document.getElementById('world-map-scene').style.display = 'flex'; 
 
