@@ -15,6 +15,10 @@ const PHYS = { NONE: 'none', SLASH: 'slash', PIERCE: 'pierce', BLUNT: 'blunt' };
 const PHYS_ICONS = { slash: "⚔️", pierce: "🔱", blunt: "🔨", none: "👊" };
 // ⚔️=斬撃, 🔱=突刺, 🔨=打撃, 👊=素手
 
+// エレメントIDに対応するVFXクラス名のマッピング
+// ELEM = { NONE:0, FIRE:1, WATER:2, EARTH:3, WIND:4, LIGHT:5, DARK:6 };
+const ELEM_VFX_MAP = ["slash", "fire", "water", "earth", "wind", "light", "dark"];
+
 // 状態異常の定義
 const STATUS = {
     NORMAL: "normal",
@@ -463,7 +467,7 @@ const gimmickData = {
 const dungeonData = {
     1: { 
         name: "地下迷宮", // 推奨Lv1~3
-        theme: { ceil: "#1a1a1a", floor: "#3d342b", wallBaseRGB: [107, 91, 69], wallStroke: "#111" },
+        theme: { ceil: "#0a0a0a", floor: "#1a1a1a", wallBaseRGB: [140, 130, 120], type: 'brick' },
         enemies: [
             {name:"スライム", hp:12, exp:8888, gold:15, img:"slime.png", elem:ELEM.WATER, agi:4, luc:5, atk:12, resist:{}, actions:["attack"]},
             {name:"ゴブリン", hp:16, exp:12, gold:22, img:"goblin.png", elem:ELEM.EARTH, agi:6, luc:10, atk:16, resist:{}, actions:["attack"]},
@@ -484,7 +488,7 @@ const dungeonData = {
     },
     2: { 
         name: "迷いの森", // 推奨Lv4~7
-        theme: { ceil: "#001100", floor: "#002200", wallBaseRGB: [34, 139, 34], wallStroke: "#002200" },
+        theme: { ceil: "#051505", floor: "#1a2e1a", wallBaseRGB: [60, 160, 60], type: 'forest' },
         enemies: [
             {name:"キラービー", hp:35, exp:35, gold:55, img:"KillerBee.png", elem:ELEM.WIND, agi:15, luc:10, atk:35, resist:{pierce:1.5}, effect:"paralyze", rate:0.2, actions:["attack"]},
             {name:"人喰い花", hp:45, exp:45, gold:70, img:"ManEating.png", elem:ELEM.EARTH, agi:7, luc:5, atk:40, resist:{fire:1.5}, actions:["attack", "sleepPollen"]},
@@ -505,7 +509,7 @@ const dungeonData = {
     },
     3: { 
         name: "海底洞窟", // 推奨Lv8~11
-        theme: { ceil: "#000033", floor: "#000055", wallBaseRGB: [0, 100, 200], wallStroke: "#000033" },
+        theme: { ceil: "#000022", floor: "#001133", wallBaseRGB: [50, 100, 200], type: 'cave' },
         enemies: [
             {name:"キラーF", hp:70, exp:90, gold:130, img:"KillerFish.png", elem:ELEM.WATER, agi:20, luc:20, atk:70, resist:{}, effect:"critical", rate:0.1, actions:["attack"]}, 
             {name:"マーマン", hp:85, exp:110, gold:160, img:"Merman.png", elem:ELEM.WATER, agi:15, luc:15, atk:75, resist:{}, actions:["attack", "water"]},
@@ -526,7 +530,7 @@ const dungeonData = {
     },
     4: { 
         name: "古代神殿", // 推奨Lv12~15
-        theme: { ceil: "#222", floor: "#444", wallBaseRGB: [200, 200, 150], wallStroke: "#554400" },
+        theme: { ceil: "#1a1a10", floor: "#2a2a20", wallBaseRGB: [220, 200, 120], type: 'temple' },
         enemies: [
             {name:"スケルトン", hp:120, exp:200, gold:280, img:"skeleton.png", elem:ELEM.DARK, agi:18, luc:5, atk:110, resist:{blunt:1.5, slash:0.7}, actions:["attack"]},
             {name:"ゾンビ", hp:150, exp:220, gold:300, img:"zombie.png", elem:ELEM.DARK, agi:8, luc:5, atk:115, resist:{fire:1.5, pierce:0.8}, effect:"poison", rate:0.4, actions:["attack"]},
@@ -547,7 +551,7 @@ const dungeonData = {
     },
     5: { 
         name: "天空の塔", // 推奨Lv16~
-        theme: { ceil: "#001133", floor: "#111", wallBaseRGB: [100, 100, 120], wallStroke: "#000" },
+        theme: { ceil: "#001144", floor: "#333344", wallBaseRGB: [160, 170, 190], type: 'tower' },
         enemies: [
             {name:"リザードマン", hp:200, exp:350, gold:600, img:"Lizardman.png", elem:ELEM.EARTH, agi:30, luc:20, atk:160, resist:{slash:0.8}, actions:["attack", "double"]},
             {name:"精霊", hp:180, exp:400, gold:700, img:"Spirit.png", elem:ELEM.LIGHT, agi:50, luc:40, atk:170, resist:{phys:0.6}, actions:["attack", "light", "judgment", "healall"]},
@@ -576,60 +580,65 @@ const fixedChestData = {
     "5_2_1_3": "i04"
 };
 
-// --- スキルデータ (spellData) の修正・追加版 ---
+// --- スキルデータ (spellData) 修正版: 説明文追加 ---
 const spellData = {
     // --- 攻撃魔法 (単体) ---
-    fire: { name:"ファイア", type:"attack", element:ELEM.FIRE, target:"single", power:25, stat:"int", cost:3 },
-    wind: { name:"ウィンド", type:"attack", element:ELEM.WIND, target:"single", power:25, stat:"int", cost:3 },
-    earth: { name:"ロック", type:"attack", element:ELEM.EARTH, target:"single", power:25, stat:"int", cost:3 },
-    water: { name:"アクア", type:"attack", element:ELEM.WATER, target:"single", power:25, stat:"int", cost:3 },
-    dark: { name:"ダーク", type:"attack", element:ELEM.DARK, target:"single", power:50, stat:"int", cost:6 },
-    light: { name:"ライト", type:"attack", element:ELEM.LIGHT, target:"single", power:30, stat:"int", cost:4 },
+    fire: { name:"ファイア", type:"attack", element:ELEM.FIRE, target:"single", power:25, stat:"int", cost:3, desc:"単体に火の玉を放つ" },
+    wind: { name:"ウィンド", type:"attack", element:ELEM.WIND, target:"single", power:25, stat:"int", cost:3, desc:"単体をカマイタチで切り裂く" },
+    earth: { name:"ロック", type:"attack", element:ELEM.EARTH, target:"single", power:25, stat:"int", cost:3, desc:"単体に岩をぶつける" },
+    water: { name:"アクア", type:"attack", element:ELEM.WATER, target:"single", power:25, stat:"int", cost:3, desc:"単体に水流を放つ" },
+    dark: { name:"ダーク", type:"attack", element:ELEM.DARK, target:"single", power:50, stat:"int", cost:6, desc:"単体を闇の力で攻撃" },
+    light: { name:"ライト", type:"attack", element:ELEM.LIGHT, target:"single", power:30, stat:"int", cost:4, desc:"単体を聖なる光で攻撃" },
 
-    // --- 攻撃魔法 (全体: 新規追加) ---
-    inferno: { name:"インフェルノ", type:"attack", element:ELEM.FIRE, target:"all", power:45, stat:"int", cost:12 }, // 火全体
-    cocytus: { name:"コキュートス", type:"attack", element:ELEM.WATER, target:"all", power:45, stat:"int", cost:12 }, // 水全体
-    storm: { name:"ストーム", type:"attack", element:ELEM.WIND, target:"all", power:45, stat:"int", cost:12 }, // 風全体
-    judgment: { name:"ジャッジメント", type:"attack", element:ELEM.LIGHT, target:"all", power:60, stat:"int", cost:18 }, // 光全体
-    meteor: { name:"メテオ", type:"attack", element:ELEM.NONE, target:"all", power:90, stat:"int", cost:25 }, // 無全体(最強)
+    // --- 攻撃魔法 (全体) ---
+    inferno: { name:"インフェルノ", type:"attack", element:ELEM.FIRE, target:"all", power:45, stat:"int", cost:12, desc:"敵全体を業火で焼き尽くす" },
+    cocytus: { name:"コキュートス", type:"attack", element:ELEM.WATER, target:"all", power:45, stat:"int", cost:12, desc:"敵全体を絶対零度で凍らす" },
+    storm: { name:"ストーム", type:"attack", element:ELEM.WIND, target:"all", power:45, stat:"int", cost:12, desc:"敵全体を嵐で切り刻む" },
+    judgment: { name:"ジャッジメント", type:"attack", element:ELEM.LIGHT, target:"all", power:60, stat:"int", cost:18, desc:"敵全体に神の裁きを下す" },
+    meteor: { name:"メテオ", type:"attack", element:ELEM.NONE, target:"all", power:90, stat:"int", cost:25, desc:"敵全体に隕石を落とす" }, // ★魔法(無属性)
 
     // --- 回復・補助魔法 ---
-    heal: { name:"ヒール", type:"heal", target:"single", power:35, stat:"pie", cost:3 },
-    highHeal: { name:"ハイヒール", type:"heal", target:"single", power:100, stat:"pie", cost:8 },
-    fullHeal: { name:"フルヒール", type:"heal", target:"single", power:999, stat:"pie", cost:14 }, // ★新規: 全回復
-    healall: { name:"ヒールオール", type:"heal", target:"all", power:25, stat:"pie", cost:10 },
-    omegaHeal: { name:"オメガヒール", type:"heal", target:"all", power:80, stat:"pie", cost:22 }, // ★新規: 全体大回復
+    heal: { name:"ヒール", type:"heal", target:"single", power:35, stat:"pie", cost:3, desc:"味方一人のHPを回復" },
+    highHeal: { name:"ハイヒール", type:"heal", target:"single", power:100, stat:"pie", cost:8, desc:"味方一人のHPを大回復" },
+    fullHeal: { name:"フルヒール", type:"heal", target:"single", power:999, stat:"pie", cost:14, desc:"味方一人のHPを全回復" },
+    healall: { name:"ヒールオール", type:"heal", target:"all", power:25, stat:"pie", cost:10, desc:"味方全体のHPを回復" },
+    omegaHeal: { name:"オメガヒール", type:"heal", target:"all", power:80, stat:"pie", cost:22, desc:"味方全体のHPを大回復" },
 
-    raise: { name:"レイズ", type:"revive", target:"single", power:0, stat:"pie", cost:10, desc:"戦闘不能を回復" },
-    escape: { name:"エスケープ", type:"util", target:"self", cost:1 },
+    raise: { name:"レイズ", type:"revive", target:"single", power:0, stat:"pie", cost:10, desc:"戦闘不能をHP半分で復活" },
+    escape: { name:"エスケープ", type:"util", target:"self", cost:1, desc:"ダンジョンから脱出する" },
 
     // --- 状態異常治療 ---
-    cure: { name:"キュア", type:"cure", target:"single", effect:"poison", cost:4, desc:"解毒" },
-    refresh: { name:"リフレッシュ", type:"cure", target:"single", effect:"paralyze", cost:6, desc:"麻痺治療" },
-    awaken: { name:"アウェイク", type:"cure", target:"single", effect:"sleep", cost:4, desc:"睡眠解除" },
-    sanity: { name:"サニity", type:"cure", target:"single", effect:"confuse", cost:5, desc:"正気に戻す" },
+    cure: { name:"キュア", type:"cure", target:"single", effect:"poison", cost:4, desc:"毒を治療する" },
+    refresh: { name:"リフレッシュ", type:"cure", target:"single", effect:"paralyze", cost:6, desc:"麻痺を治療する" },
+    awaken: { name:"アウェイク", type:"cure", target:"single", effect:"sleep", cost:4, desc:"睡眠から目覚めさせる" },
+    sanity: { name:"サニティ", type:"cure", target:"single", effect:"confuse", cost:5, desc:"混乱を治療する" },
 
-    // --- 状態異常付与 (魔法使い用) ---
-    sleep: { name:"スリープ", type:"enfeeble", element:ELEM.DARK, target:"single", status:STATUS.SLEEP, rate:0.7, cost:5 },
-    panic: { name:"パニック", type:"enfeeble", element:ELEM.DARK, target:"all", status:STATUS.CONFUSE, rate:0.5, cost:8 },
+    // --- 状態異常付与 ---
+    sleep: { name:"スリープ", type:"enfeeble", element:ELEM.DARK, target:"single", status:STATUS.SLEEP, rate:0.7, cost:5, desc:"敵単体を眠らせる" },
+    panic: { name:"パニック", type:"enfeeble", element:ELEM.DARK, target:"all", status:STATUS.CONFUSE, rate:0.5, cost:8, desc:"敵全体を混乱させる" },
 
     // --- バフ ---
-    buffDef: { name:"プロテクト", type:"buff", target:"single", effect:"defUp", turns:6, cost:5 },
-    buffAtk: { name:"バイキルト", type:"buff", target:"single", effect:"atkUp", turns:6, cost:6 },
+    buffDef: { name:"プロテクト", type:"buff", target:"single", effect:"defUp", turns:6, cost:5, desc:"味方の防御力を上げる" },
+    buffAtk: { name:"バイキルト", type:"buff", target:"single", effect:"atkUp", turns:6, cost:6, desc:"味方の攻撃力を上げる" },
 
-    // --- 物理スキル ---
-    slash: { name:"強斬り", type:"phys", element:ELEM.NONE, target:"single", mult:1.5, cost:3 },
-    double: { name:"二段斬り", type:"phys", element:ELEM.NONE, target:"single", mult:2.2, cost:5 },
-    cross: { name:"十字斬り", type:"phys", element:ELEM.NONE, target:"single", mult:2.0, cost:4 },
-    charge: { name:"全身全霊", type:"phys", element:ELEM.NONE, target:"single", mult:3.0, cost:8 },
-    gigaSlash: { name:"ギガブレイク", type:"phys", element:ELEM.NONE, target:"single", mult:4.5, cost:15 }, // ★新規: 勇者最強
+    // --- 物理スキル (特技) ---
+    // type: "phys" のものは特技として分類します
+    slash: { name:"強斬り", type:"phys", element:ELEM.NONE, target:"single", mult:1.5, cost:3, desc:"単体に強烈な斬撃" },
+    double: { name:"二段斬り", type:"phys", element:ELEM.NONE, target:"single", mult:2.2, cost:5, desc:"単体に2回連続攻撃" },
+    cross: { name:"十字斬り", type:"phys", element:ELEM.NONE, target:"single", mult:2.0, cost:4, desc:"単体に十字の斬撃" },
+    charge: { name:"全身全霊", type:"phys", element:ELEM.NONE, target:"single", mult:3.0, cost:8, desc:"単体に渾身の一撃" },
+    gigaSlash: { name:"ギガブレイク", type:"phys", element:ELEM.NONE, target:"single", mult:4.5, cost:15, desc:"究極の必殺剣" },
 
-    // --- 物理範囲スキル (新規追加) ---
-    sweep: { name:"なぎ払い", type:"phys", element:ELEM.NONE, target:"all", mult:0.7, cost:4 },
-    spin: { name:"回転斬り", type:"phys", element:ELEM.NONE, target:"all", mult:1.0, cost:8 }, // 勇者・戦士用範囲
-    landCrash: { name:"大地砕き", type:"phys", element:ELEM.EARTH, target:"all", mult:1.4, cost:12 } // 戦士用範囲
+    // --- 物理範囲スキル ---
+    sweep: { name:"なぎ払い", type:"phys", element:ELEM.NONE, target:"all", mult:0.7, cost:4, desc:"敵全体を攻撃" },
+    spin: { name:"回転斬り", type:"phys", element:ELEM.NONE, target:"all", mult:1.0, cost:8, desc:"敵全体を強く攻撃" },
+    landCrash: { name:"大地砕き", type:"phys", element:ELEM.EARTH, target:"all", mult:1.4, cost:12, desc:"敵全体に土属性攻撃" }
 };
 
+// --- ★新規ヘルパー関数: 呪文か特技かを判定 ---
+function isPhysicalSkill(spell) {
+    return spell.type === 'phys';
+}
 
 
 const jobData = {
@@ -667,7 +676,7 @@ const jobData = {
 const itemData = {
     // Tier 1: 地下迷宮 (Lv1~3)
     w_sw1: {name:"銅の剣", type:"weapon", subType:"sword", phys: PHYS.SLASH, power:12, price:80, tier:1},   
-  w_sp1: {name:"竹槍", type:"weapon", subType:"spear", phys: PHYS.PIERCE, power:13, price:90, tier:1}, 
+    w_sp1: {name:"竹槍", type:"weapon", subType:"spear", phys: PHYS.PIERCE, power:13, price:90, tier:1}, 
     w_ax1: {name:"石の斧", type:"weapon", subType:"axe", phys: PHYS.BLUNT, power:15, price:110, tier:1}, 
     w_mc1: {name:"こんぼう", type:"weapon", subType:"mace", phys: PHYS.BLUNT, power:14, price:90, tier:1}, 
     w_st1: {name:"樫の杖", type:"weapon", subType:"staff", phys: PHYS.BLUNT, power:8, price:60, tier:1},  
@@ -680,19 +689,20 @@ const itemData = {
     w_sw2: {name:"鉄の剣", type:"weapon", subType:"sword", phys: PHYS.SLASH, power:18, price:450, tier:2},
     w_sp2: {name:"鉄の槍", type:"weapon", subType:"spear", phys: PHYS.PIERCE, power:19, price:480, tier:2},
     w_ax2: {name:"鉄の斧", type:"weapon", subType:"axe", phys: PHYS.SLASH, power:21, price:550, tier:2},
-    // ★追加: メイス Tier 2
     w_mc2: {name:"フレイル", type:"weapon", subType:"mace", phys: PHYS.BLUNT, power:20, price:500, tier:2},
     w_st2: {name:"魔導の杖", type:"weapon", subType:"staff", phys: PHYS.BLUNT, power:13, price:400, tier:2},
     a_lt_t2: {name:"武道着", type:"armor", subType:"clothes", ac:8, price:500, tier:2},
     a_hv_t2: {name:"鎖帷子", type:"armor", subType:"armor", ac:12, price:750, tier:2},
     s_hv_t2: {name:"鉄の盾", type:"shield", subType:"heavyShield", ac:6, price:550, tier:2},
     h_hv_t2: {name:"鉄の兜", type:"helm", subType:"helm", ac:4, price:450, tier:2},
+    // ★追加: Tier 2 軽装 (小盾・帽子)
+    s_lt_t2: {name:"ウッドシールド", type:"shield", subType:"lightShield", ac:4, price:350, tier:2},
+    h_lt_t2: {name:"ターバン", type:"helm", subType:"hat", ac:2, price:250, tier:2},
 
     // Tier 3: 海底洞窟 (Lv8~11)
     w_sw3: {name:"鋼の剣", type:"weapon", subType:"sword", phys: PHYS.SLASH, power:26, price:1200, tier:3},
     w_sp3: {name:"パルチザン", type:"weapon", subType:"spear", phys: PHYS.PIERCE, power:28, price:1300, tier:3},
     w_ax3: {name:"バトルアックス", type:"weapon", subType:"axe", phys: PHYS.SLASH, power:32, price:1500, tier:3},
-    // ★追加: メイス Tier 3
     w_mc3: {name:"モーニングスター", type:"weapon", subType:"mace", phys: PHYS.BLUNT, power:30, price:1400, tier:3},
     w_st3: {name:"ルビーの杖", type:"weapon", subType:"staff", phys: PHYS.BLUNT, power:18, price:1100, tier:3},
     a_lt2: {name:"みかわしの服", type:"armor", subType:"clothes", ac:16, price:1400, tier:3},
@@ -700,13 +710,15 @@ const itemData = {
     s_hv2: {name:"カイトシールド", type:"shield", subType:"heavyShield", ac:10, price:1300, tier:3},
     h_hv2: {name:"鉄仮面", type:"helm", subType:"helm", ac:8, price:1000, tier:3},
     ac01:{name:"守りの指輪",type:"accessory",subType:"acc",ac:5, price:1500, tier:3}, 
+    // ★追加: Tier 3 軽装 (小盾・帽子)
+    s_lt2: {name:"シルバーバックラー", type:"shield", subType:"lightShield", ac:7, price:900, tier:3},
+    h_lt2: {name:"シルクの帽子", type:"helm", subType:"hat", ac:5, price:700, tier:3},
 
     // Tier 4: 古代神殿 (Lv12~15)
+    // ※Tier4はもともと軽装(s_lt_t4, h_lt_t4)が定義済み
     w_sw4: {name:"プラチナソード", type:"weapon", subType:"sword", phys: PHYS.SLASH, power:45, price:3500, tier:4},
     w_sp4: {name:"トライデント", type:"weapon", subType:"spear", phys: PHYS.PIERCE, power:48, price:3800, tier:4},
-    // ★変更: ウォーハンマー(mace)だったのをグレートアックス(axe)に変更
     w_ax4: {name:"グレートアックス", type:"weapon", subType:"axe", phys: PHYS.SLASH, power:54, price:4200, tier:4},
-    // ★追加: メイス Tier 4 (ウォーハンマーはこちらに移動)
     w_mc4: {name:"ウォーハンマー", type:"weapon", subType:"mace", phys: PHYS.BLUNT, power:50, price:4000, tier:4},
     w_st4: {name:"賢者の杖", type:"weapon", subType:"staff", phys: PHYS.BLUNT, power:30, price:3200, tier:4},
     a_lt_t4: {name:"魔法の法衣", type:"armor", subType:"clothes", ac:28, price:4000, tier:4},
@@ -718,7 +730,6 @@ const itemData = {
     w_sw5: {name:"ドラゴンキラー", type:"weapon", subType:"sword", phys: PHYS.SLASH, power:70, price:9000, tier:5},
     w_sp5: {name:"ドラゴンランス", type:"weapon", subType:"spear", phys: PHYS.PIERCE, power:75, price:9500, tier:5},
     w_ax5: {name:"魔神の斧", type:"weapon", subType:"axe", phys: PHYS.SLASH, power:82, price:11000, tier:5},
-    // ★追加: メイス Tier 5
     w_mc5: {name:"ギガントハンマー", type:"weapon", subType:"mace", phys: PHYS.BLUNT, power:78, price:10500, tier:5},
     w_st5: {name:"世界樹の杖", type:"weapon", subType:"staff", phys: PHYS.BLUNT, power:50, price:8500, tier:5},
     a_lt3: {name:"大賢者のローブ", type:"armor", subType:"clothes", ac:45, price:10000, tier:5},
@@ -726,6 +737,9 @@ const itemData = {
     s_hv3: {name:"勇者の盾", type:"shield", subType:"heavyShield", ac:30, price:9000, tier:5},
     h_hv3: {name:"グレートヘルム", type:"helm", subType:"helm", ac:20, price:7000, tier:5},
     ac02:{name:"力の指輪",type:"accessory",subType:"acc",power:10, price:5000, tier:5},
+    // ★追加: Tier 5 軽装 (小盾・帽子)
+    s_lt3: {name:"ルーンシールド", type:"shield", subType:"lightShield", ac:22, price:6500, tier:5},
+    h_lt3: {name:"司教の帽子", type:"helm", subType:"hat", ac:15, price:5500, tier:5},
 
     // Tier 6: 最強装備 (伝説級)
     w_sw6: {name:"ラグナロク", type:"weapon", subType:"sword", phys: PHYS.SLASH, power:100, price:25000, tier:6},
@@ -739,6 +753,9 @@ const itemData = {
     
     s_hv6: {name:"イージスの盾", type:"shield", subType:"heavyShield", ac:50, price:20000, tier:6},
     h_hv6: {name:"源氏の兜", type:"helm", subType:"helm", ac:40, price:18000, tier:6},
+    // ★追加: Tier 6 軽装 (小盾・帽子)
+    s_lt6: {name:"聖女の盾", type:"shield", subType:"lightShield", ac:35, price:15000, tier:6},
+    h_lt6: {name:"ロイヤルクラウン", type:"helm", subType:"hat", ac:28, price:14000, tier:6},
     
     ac03: {name:"アルテマリング", type:"accessory", subType:"acc", power:20, ac:10, price:50000, tier:6},
 
@@ -751,39 +768,43 @@ const itemData = {
     i06: {name:"気付け草", type:"consumable", effect:"cureConfuse", price:40, desc:"混乱を治す"},
     i07: {name:"金の針", type:"consumable", effect:"cureStone", price:100, desc:"石化を解く"},
     i08: {name:"特薬草", type:"consumable", effect:"heal", power:100, price:80, desc:"HP100回復"},
-i09: {name:"忘却の石", type:"consumable", effect:"respec", price:100, desc:"ステータスを初期化して振り直す"}
+    i09: {name:"忘却の石", type:"consumable", effect:"respec", price:100, desc:"ステータスを初期化して振り直す"}
 };
 
+// ダンジョンIDごとのドロップリスト (ID: 1, 10, 20, 30, 40)
 // ダンジョンIDごとのドロップリスト (ID: 1, 10, 20, 30, 40)
 const dungeonDropData = {
     // 1: 地下迷宮 (Tier 1)
     1: ['w_sw1','w_ax1','w_mc1','w_st1','w_sp1','a_lt1','h_lt1','s_lt1'], 
     
-    // 2: 迷いの森 (Tier 2 を追加)
-    // 既存の w_sw2 (Tier2武器) に加え、新防具を追加
-    2: ['w_sw2','w_ax2','w_mc2','w_st2','w_sp2', 'a_hv_t2', 'a_lt_t2', 's_hv_t2', 'h_hv_t2'],
+    // 2: 迷いの森 (Tier 2)
+    // ★追加: s_lt_t2, h_lt_t2
+    2: ['w_sw2','w_ax2','w_mc2','w_st2','w_sp2', 'a_hv_t2', 'a_lt_t2', 's_hv_t2', 'h_hv_t2', 's_lt_t2', 'h_lt_t2'],
     
     // 3: 海底洞窟 (Tier 3)
-    3: ['w_sw3','w_ax3','w_mc3','w_st3','w_sp3','a_hv2','s_hv2','a_lt2','h_hv2','ac01'], 
+    // ★追加: s_lt2, h_lt2
+    3: ['w_sw3','w_ax3','w_mc3','w_st3','w_sp3','a_hv2','s_hv2','a_lt2','h_hv2','ac01', 's_lt2', 'h_lt2'], 
     
-    // 4: 古代神殿 (Tier 4 を追加)
-    // 既存の w_sw4 (Tier4武器) に加え、新防具を追加
+    // 4: 古代神殿 (Tier 4)
+    // Tier 4はもともと軽装(s_lt_t4, h_lt_t4)が含まれています
     4: ['w_sw4','w_ax4','w_mc4','w_st4','w_sp4', 'a_hv_t4', 'a_lt_t4', 's_lt_t4', 'h_lt_t4'],
 
     // 5: 天空の塔 (Tier 5 + Tier 6最強装備)
-    // Tier5装備に加え、最強装備(Tier6)もドロップリストに含める
+    // ★追加: s_lt3, h_lt3 (Tier 5軽装) と s_lt6, h_lt6 (Tier 6軽装レア)
     5: [
         // Tier 5 (標準ドロップ)
-        'w_sw5','w_ax5','w_mc5','w_st5','w_sp5','a_hv3','s_hv3','a_lt3','h_hv3','ac02',
+        'w_sw5','w_ax5','w_mc5','w_st5','w_sp5','a_hv3','s_hv3','a_lt3','h_hv3','ac02', 's_lt3', 'h_lt3',
         // Tier 6 (レア枠として混入)
-        'w_sw6','w_ax6','w_mc6','w_st6','w_sp6','a_hv6','s_hv6','a_lt6','h_hv6','ac03'
+        'w_sw6','w_ax6','w_mc6','w_st6','w_sp6','a_hv6','s_hv6','a_lt6','h_hv6','ac03', 's_lt6', 'h_lt6'
     ] 
 };
 
 let party = [
-    { id: "p1", name: "アベル", img: "abel.png", jobId: "hero", level: 1, exp: 0, hp: 0, maxHp: 0, stats: {}, alive: true, status: "normal", spells: {}, buffs:{atk:0, def:0}, equips: { weapon:null, armor:null, shield:null, helm:null, acc:null } },
-    { id: "p2", name: "メイ", img: "mei.png", jobId: "mage", level: 1, exp: 0, hp: 0, maxHp: 0, stats: {}, alive: true, status: "normal", spells: {}, buffs:{atk:0, def:0}, equips: { weapon:null, armor:null, shield:null, helm:null, acc:null } },
-    { id: "p3", name: "シーラ", img: "sheila.png", jobId: "priest", level: 1, exp: 0, hp: 0, maxHp: 0, stats: {}, alive: true, status: "normal", spells: {}, buffs:{atk:0, def:0}, equips: { weapon:null, armor:null, shield:null, helm:null, acc:null } }
+    { id: "p1", name: "アーサー", img: "Hero.png", jobId: "hero", level: 1, exp: 0, hp: 0, maxHp: 0, stats: {}, alive: true, status: "normal", spells: {}, buffs:{atk:0, def:0}, equips: { weapon:null, armor:null, shield:null, helm:null, acc:null } },
+    // ★追加: 戦士ガストン (p4)
+    { id: "p4", name: "ガストン", img: "Warrior.png", jobId: "warrior", level: 1, exp: 0, hp: 0, maxHp: 0, stats: {}, alive: true, status: "normal", spells: {}, buffs:{atk:0, def:0}, equips: { weapon:null, armor:null, shield:null, helm:null, acc:null } },
+    { id: "p2", name: "エルヴィン", img: "Wizard.png", jobId: "mage", level: 1, exp: 0, hp: 0, maxHp: 0, stats: {}, alive: true, status: "normal", spells: {}, buffs:{atk:0, def:0}, equips: { weapon:null, armor:null, shield:null, helm:null, acc:null } },
+    { id: "p3", name: "エレナ", img: "Priest.png", jobId: "priest", level: 1, exp: 0, hp: 0, maxHp: 0, stats: {}, alive: true, status: "normal", spells: {}, buffs:{atk:0, def:0}, equips: { weapon:null, armor:null, shield:null, helm:null, acc:null } }
 ];
 
 let partyInventory = [], partyGold = 100, openedChests = [];
@@ -874,10 +895,12 @@ function learnSpells(p, lvl) {
 
 function calculateStats(p) { 
     // 基本値を計算
-    // HP計算式: Vit x 3 + Level x 2 + 基礎20
-    // 例: Lv1(Vit10) -> 30+2+20 = 52
-    // 例: Lv20(Vit40) -> 120+40+20 = 180 (装備で+αして250くらい)
-    p.maxHp = Math.floor((p.stats.vit * 3) + (p.level * 2) + 20);
+    
+    // ★修正: HP計算式を変更 (Lv20未振りで200, 特化で400程度になるように)
+    // 旧: Vit*3 + Lv*2 + 20
+    // 新: Vit*4 + Lv*6 + 40
+    p.maxHp = Math.floor((p.stats.vit * 4) + (p.level * 6) + 40);
+
     p.atk = p.stats.str; 
     p.def = Math.floor(p.stats.agi / 2); 
 
@@ -893,10 +916,11 @@ function calculateStats(p) {
             // ランダム効果の加算
             if(equipObj.bonus) {
                 if(equipObj.bonus.str) p.atk += equipObj.bonus.str; 
+                // HPボーナスも少し強化してもいいですが、計算式変更で十分増えるのでそのままでOK
                 if(equipObj.bonus.hp) p.maxHp += equipObj.bonus.hp;
                 if(equipObj.bonus.def) p.def += equipObj.bonus.def;
                 if(equipObj.bonus.agi) p.def += Math.floor(equipObj.bonus.agi / 2);
-                if(equipObj.bonus.vit) p.maxHp += Math.floor(equipObj.bonus.vit * 3);
+                if(equipObj.bonus.vit) p.maxHp += Math.floor(equipObj.bonus.vit * 4); // ★ここもVit係数に合わせて *3 -> *4 にしておくと自然です
             }
         } 
     } 
@@ -1096,10 +1120,10 @@ function handleTileEvent(tile, x, y) {
     if(![TILE.STAIRS, TILE.BOSS, TILE.CHEST, TILE.EXIT, TILE.SHOP, TILE.FLOW, TILE.WARP, TILE.HOLE].includes(tile)) {
         // 階層ごとの基本エンカウント率
         //let rate = 0.12;
-        if(currentFloor === 2) rate = 0.15;
-        if(currentFloor === 3) rate = 0.20; // 3Fもエンカウントありに変更
+        //if(currentFloor === 2) rate = 0.15;
+        //if(currentFloor === 3) rate = 0.20; // 3Fもエンカウントありに変更
 
-let rate = 0.10; //デバッグ
+let rate = 0.05; //デバッグ
         if(Math.random() < rate) startBattle(); 
     }
 }
@@ -1207,7 +1231,7 @@ function returnToTown(force=false) {
     updateTownStatus(); if(!force) townLog("町へ戻った。");
 }
 function openWorldMap() { 
-clearedDungeons = [1]; //デバッグ
+clearedDungeons = [1,2,3,4,5]; //デバッグ
     document.getElementById('town-scene').style.display = 'none'; 
     document.getElementById('world-map-scene').style.display = 'flex'; 
 
@@ -1387,70 +1411,563 @@ function updateDungeonUI() {
     }).join('');
     checkObject();
 }
+// 床の奥行きライン定義 (VIEW_METRICSの壁下端座標と一致させることで違和感を消す)
+// d=0:200, d=1:160, d=2:130, d=3:115, それ以降は補間
+const FLOOR_Y = [200, 160, 130, 115, 108, 104, 102];
+const CEIL_Y  = [0,   40,  70,  85,  92,  96,  98];  // 200 - FLOOR_Y
+
 function draw3D(){
     if(!ctx) return;
     const theme = dungeonData[currentDungeonId].theme;
-    ctx.fillStyle = theme.ceil; ctx.fillRect(0,0,300,100);
-    ctx.fillStyle = theme.floor; ctx.fillRect(0,100,300,100);
+    
+    // 1. 環境（床・天井）の描画
+    drawEnvironment(ctx, theme);
+
+    // 2. 壁の描画（奥から手前へ）
     for(let d=3; d>=0; d--) drawLayer(d, theme);
 }
-function drawLayer(d, theme){
-    const l=getRelPos(d,-1)===1, r=getRelPos(d,1)===1, f=getRelPos(d,0)===1;
-    const m=VIEW_METRICS[d], nm=(d<3)?VIEW_METRICS[d+1]:null;
-    const i=1.0-(d*0.25); const base=theme.wallBaseRGB; 
-    const rv=Math.floor(base[0]*i), gv=Math.floor(base[1]*i), bv=Math.floor(base[2]*i);
-    const wc=`rgb(${rv},${gv},${bv})`, sc=`rgb(${Math.floor(rv*0.7)},${Math.floor(gv*0.7)},${Math.floor(bv*0.7)})`;
-    ctx.lineWidth=2; ctx.strokeStyle=theme.wallStroke;
-    if(f){ ctx.fillStyle=wc; ctx.fillRect(m.x,m.y,m.w,m.h); ctx.strokeRect(m.x,m.y,m.w,m.h); }
-    else if(d<3 && nm){ if(l){ctx.fillStyle=sc;ctx.beginPath();ctx.moveTo(m.x,m.y);ctx.lineTo(nm.x,nm.y);ctx.lineTo(nm.x,nm.y+nm.h);ctx.lineTo(m.x,m.y+m.h);ctx.fill();ctx.stroke();} if(r){ctx.fillStyle=sc;ctx.beginPath();ctx.moveTo(m.x+m.w,m.y);ctx.lineTo(nm.x+nm.w,nm.y);ctx.lineTo(nm.x+nm.w,nm.y+nm.h);ctx.lineTo(m.x+m.w,m.y+m.h);ctx.fill();ctx.stroke();} }
+
+// 床と天井を詳細に描画する関数
+function drawEnvironment(ctx, theme) {
+    const W = 300;
+    const H = 200;
+    const CY = 100; // 地平線（Horizon）
+
+    // --- ベースのグラデーション ---
+    const ceilGrad = ctx.createLinearGradient(0, 0, 0, CY);
+    ceilGrad.addColorStop(0, theme.ceil);
+    ceilGrad.addColorStop(1, "#000"); 
+    ctx.fillStyle = ceilGrad; 
+    ctx.fillRect(0, 0, W, CY);
+
+    const floorGrad = ctx.createLinearGradient(0, CY, 0, H);
+    floorGrad.addColorStop(0, "#000"); 
+    floorGrad.addColorStop(1, theme.floor);
+    ctx.fillStyle = floorGrad; 
+    ctx.fillRect(0, CY, W, CY);
+
+    // --- タイプ別の環境エフェクト ---
+    ctx.save();
     
+    // 地平線付近のクリッピング（奥の粗さを隠す）
+    ctx.beginPath();
+    ctx.rect(0, 0, W, H);
+    ctx.clip();
+
+    if (theme.type === 'brick') {
+        // [地下迷宮] 石畳のグリッド
+        drawPerspectiveGrid(ctx, W, H, CY, "rgba(255,255,255,0.15)", "rgba(255,255,255,0.05)");
+    } 
+    else if (theme.type === 'forest') {
+        // [迷いの森] 草地と木漏れ日
+        drawForestFloor(ctx, W, H, CY);
+    }
+    else if (theme.type === 'cave') {
+        // [海底洞窟] 水面の波紋
+        drawWaterFloor(ctx, W, H, CY);
+    }
+    else if (theme.type === 'temple') {
+        // [古代神殿] タイル床と天井の梁
+        drawTempleEnvironment(ctx, W, H, CY);
+    }
+    else if (theme.type === 'tower') {
+        // [天空の塔] 星空とサイバーなグリッド
+        drawTowerEnvironment(ctx, W, H, CY);
+    }
+
+    // --- 仕上げ: 距離フォグ（地平線付近を少し暗くして馴染ませる） ---
+    const fog = ctx.createLinearGradient(0, CY - 20, 0, CY + 20);
+    fog.addColorStop(0, "rgba(0,0,0,0)");
+    fog.addColorStop(0.5, "rgba(0,0,0,0.5)"); // 中心だけ少し暗く
+    fog.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = fog;
+    ctx.fillRect(0, CY - 20, W, 40);
+
+    ctx.restore();
+}
+
+// 汎用的な透視投影グリッドを描画
+function drawPerspectiveGrid(ctx, w, h, cy, colorFloor, colorCeil) {
+    ctx.lineWidth = 1;
+
+    // 床のグリッド
+    ctx.strokeStyle = colorFloor;
+    ctx.beginPath();
+    
+    // 放射線（奥行き）
+    for (let i = -2; i <= 8; i++) {
+        const x = i * (w / 3); 
+        ctx.moveTo(x, h);
+        ctx.lineTo(w / 2, cy); 
+    }
+    // 横線（距離） - ★壁のパースと一致させる
+    FLOOR_Y.forEach(y => {
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+    });
+    ctx.stroke();
+
+    // 天井のグリッド
+    if (colorCeil) {
+        ctx.strokeStyle = colorCeil;
+        ctx.beginPath();
+        CEIL_LINES.forEach(y => {
+            ctx.moveTo(0, y);
+            ctx.lineTo(w, y);
+        });
+        ctx.stroke();
+    }
+}
+
+// 森の表現
+function drawForestFloor(ctx, w, h, cy) {
+    // 床：草の表現
+    ctx.fillStyle = "rgba(40, 80, 40, 0.4)";
+    // 奥から手前へ描画することで重なりを自然に
+    for(let i=FLOOR_Y.length-1; i>=0; i--) {
+        const yBase = FLOOR_Y[i];
+        if(yBase > h) continue;
+        
+        // 各ライン付近に草を生やす
+        const density = 20 + i * 5; // 手前ほど多く
+        const scale = (yBase - cy) / (h - cy); // 手前ほど大きく
+        
+        for(let j=0; j<density; j++) {
+            const x = Math.random() * w;
+            const size = 2 + scale * 8;
+            // 揺らぎを加える
+            const y = yBase - (Math.random() * size); 
+            ctx.fillRect(x, y, 2 * scale, size); 
+        }
+    }
+
+    // 天井：木漏れ日
+    ctx.fillStyle = "rgba(20, 50, 20, 0.5)";
+    for(let i=0; i<30; i++) {
+        const x = Math.random() * w;
+        const y = Math.random() * cy;
+        const s = 5 + Math.random() * 15;
+        ctx.beginPath(); ctx.arc(x, y, s, 0, Math.PI*2); ctx.fill();
+    }
+}
+
+// 洞窟の表現
+function drawWaterFloor(ctx, w, h, cy) {
+    // 水面（床）- ラインをパースに合わせる
+    ctx.strokeStyle = "rgba(100, 200, 255, 0.3)";
+    ctx.lineWidth = 1;
+    
+    FLOOR_Y.forEach((y, idx) => {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        // 波の振幅を手前ほど大きく
+        const amp = (y - cy) * 0.05; 
+        const freq = 20 + idx * 5;
+        
+        for(let x=0; x<=w; x+=10) {
+            ctx.lineTo(x, y + Math.sin(x/freq + Date.now()/1000)*amp); // 簡易アニメーションっぽく見せるならDate.now使う手もあるが、静止画なら定数でOK
+        }
+        ctx.stroke();
+    });
+
+    // 天井：鍾乳石
+    ctx.fillStyle = "rgba(0, 0, 50, 0.6)";
+    for(let i=0; i<15; i++) {
+        const x = Math.random() * w;
+        const y = 0;
+        const hLen = 10 + Math.random() * 40;
+        const wLen = 2 + Math.random() * 6;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + wLen, y);
+        ctx.lineTo(x + wLen/2, y + hLen);
+        ctx.fill();
+    }
+}
+
+// 神殿の表現
+function drawTempleEnvironment(ctx, w, h, cy) {
+    // 床：チェッカーボード風のライン
+    ctx.strokeStyle = "rgba(200, 180, 100, 0.3)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    
+    // 放射線
+    for (let i = -1; i <= 4; i++) {
+        const x = i * (w / 2); 
+        ctx.moveTo(x, h);
+        ctx.lineTo(w / 2, cy);
+    }
+    // 横線 - パース合わせ
+    FLOOR_Y.forEach(y => {
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+    });
+    ctx.stroke();
+
+    // 天井：梁（はり）- パース合わせ
+    ctx.fillStyle = "rgba(50, 40, 20, 0.6)";
+    CEIL_Y.forEach(y => {
+        ctx.fillRect(0, y - 2, w, 4); // 少し太めの梁
+    });
+}
+
+// 塔の表現
+function drawTowerEnvironment(ctx, w, h, cy) {
+    // 天井：星空
+    ctx.fillStyle = "#fff";
+    for(let i=0; i<50; i++) {
+        const x = Math.random() * w;
+        const y = Math.random() * cy * 1.5;
+        const s = Math.random() * 1.5;
+        ctx.globalAlpha = 0.3 + Math.random() * 0.7;
+        ctx.beginPath(); ctx.arc(x, y, s, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha = 1.0;
+
+    // 床：メカニカルなグリッド
+    ctx.strokeStyle = "rgba(100, 255, 255, 0.4)";
+    ctx.shadowBlur = 4;
+    ctx.shadowColor = "#0ff";
+    ctx.lineWidth = 1;
+    
+    ctx.beginPath();
+    // 放射線
+    for (let i = -4; i <= 8; i++) {
+        const x = i * (w / 4);
+        ctx.moveTo(x, h);
+        ctx.lineTo(w / 2, cy);
+    }
+    // 横線 - パース合わせ
+    FLOOR_Y.forEach(y => {
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+    });
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+}
+// 汎用的な透視投影グリッドを描画
+function drawPerspectiveGrid(ctx, w, h, cy, colorFloor, colorCeil) {
+    ctx.lineWidth = 1;
+
+    // 床のグリッド
+    ctx.strokeStyle = colorFloor;
+    ctx.beginPath();
+    
+    // 放射線（奥行き）
+    for (let i = -2; i <= 8; i++) {
+        const x = i * (w / 3); // 間隔広め
+        ctx.moveTo(x, h);
+        ctx.lineTo(w / 2, cy); // 消失点へ
+    }
+    // 横線（距離）- 指数関数的に間隔を狭める
+    for (let i = 1; i < 8; i++) {
+        const y = cy + (h - cy) / i;
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+    }
+    ctx.stroke();
+
+    // 天井のグリッド（もしあれば）
+    if (colorCeil) {
+        ctx.strokeStyle = colorCeil;
+        ctx.beginPath();
+        // 天井の横線
+        for (let i = 1; i < 6; i++) {
+            const y = cy - (cy / i);
+            ctx.moveTo(0, y);
+            ctx.lineTo(w, y);
+        }
+        ctx.stroke();
+    }
+}
+
+function drawLayer(d, theme){
+    // 相対座標のチェック
+    const l = getRelPos(d, -1) === 1; // 左に壁があるか
+    const r = getRelPos(d, 1) === 1;  // 右に壁があるか
+    const f = getRelPos(d, 0) === 1;  // 正面に壁があるか
+    
+    const m = VIEW_METRICS[d];
+    const nm = (d < 3) ? VIEW_METRICS[d+1] : null; // 一つ奥の座標
+
+    // 距離による明るさ調整 (奥ほど暗く)
+    const brightness = 1.0 - (d * 0.2); 
+
+    // --- 正面の壁 (Front) ---
+    if(f){
+        drawWallRect(m.x, m.y, m.w, m.h, theme, brightness, 'front', d);
+    }
+    // --- 側面の壁 (Side) ---
+    else if(d < 3 && nm){ 
+        if(l){
+            // 左壁: 台形を描画
+            drawSideWall(m.x, m.y, m.h, nm.x, nm.y, nm.h, theme, brightness * 0.8, 'left');
+        } 
+        if(r){
+            // 右壁: 台形を描画 (X座標は幅を足したもの)
+            drawSideWall(m.x + m.w, m.y, m.h, nm.x + nm.w, nm.y, nm.h, theme, brightness * 0.8, 'right');
+        } 
+    }
+    
+    // --- イベントアイコン等の描画 (既存処理のまま維持) ---
     let cx=playerPos.x, cy=playerPos.y, dr=playerPos.dir;
     if(dr===0)cy-=d; else if(dr===1)cx+=d; else if(dr===2)cy+=d; else if(dr===3)cx-=d;
     let val=0; if(cx>=0 && cx<mapSize && cy>=0 && cy<mapSize) val=currentMapData[cy][cx];
     
-    // イベント描画
     if([TILE.STAIRS, TILE.UP_STAIRS, TILE.BOSS, TILE.CHEST, TILE.SHOP, TILE.EXIT, TILE.HOLE, 
-    TILE.DOOR, TILE.LOCKED_DOOR, TILE.SWITCH].includes(val)) {
+        TILE.DOOR, TILE.LOCKED_DOOR, TILE.SWITCH].includes(val)) {
+        
         let s=m.w*0.6, ix=m.x+(m.w-s)/2, iy=m.y+(m.h-s)/2;
-        let t='ev'; 
-        if(val===TILE.STAIRS || val===TILE.UP_STAIRS) t='ladder'; // 上りも下りも同じアイコンでOK
-        else if(val===TILE.BOSS) {
-            // (ボスの描画処理はそのまま)
-            ctx.save();
-            const cx = ix + s / 2;
-            const cy = iy + s / 2;
-            const grad = ctx.createRadialGradient(cx, cy, s * 0.1, cx, cy, s * 0.8);
-            grad.addColorStop(0, "rgba(255, 50, 50, 0.9)");
-            grad.addColorStop(0.4, "rgba(150, 0, 0, 0.6)");
-            grad.addColorStop(1, "rgba(0, 0, 0, 0)");
-            ctx.fillStyle = grad;
-            ctx.beginPath();
-            ctx.arc(cx, cy, s * 0.8, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = "rgba(50, 0, 0, 0.8)";
-            ctx.beginPath();
-            ctx.arc(cx, cy, s * 0.2, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-            return; 
-        }
+        let t='ev';
+        
+        // アイコン種別の決定 (既存コードと同じ)
+        if(val===TILE.STAIRS || val===TILE.UP_STAIRS) t='ladder';
+        else if(val===TILE.BOSS) { /* ...Boss描画処理... */ drawBossAura(ix, iy, s); return; } 
         else if(val===TILE.CHEST) t='chest';
         else if(val===TILE.SHOP) t='shop';
-else if(val===TILE.EXIT) t='exit';
-        else if(val===TILE.HOLE) {
-            // ★修正: 天空の塔(ID=5)以外の場合のみ穴を描画
-            if(currentDungeonId !== 5) t='hole';
-            else return; // 描画しない（床として表示）
-        }else if(val===TILE.DOOR) t='door';
-    else if(val===TILE.LOCKED_DOOR) {
-        // 開錠済みなら普通の扉として描画、未開錠ならロック扉
-        const key = `${currentDungeonId}_${currentFloor}_${cx}_${cy}`;
-        t = unlockedDoors[key] ? 'door' : 'locked_door';
-    }
-    else if(val===TILE.SWITCH) t='switch';
+        else if(val===TILE.EXIT) t='exit';
+        else if(val===TILE.HOLE) { if(currentDungeonId !== 5) t='hole'; else return; }
+        else if(val===TILE.DOOR) t='door';
+        else if(val===TILE.LOCKED_DOOR) {
+            const key = `${currentDungeonId}_${currentFloor}_${cx}_${cy}`;
+            t = unlockedDoors[key] ? 'door' : 'locked_door';
+        }
+        else if(val===TILE.SWITCH) t='switch';
         
         drawIcon(ctx, ix, iy, s, t); 
     }
+}
+
+function drawBossAura(ix, iy, s) {
+    ctx.save();
+    const cx = ix + s / 2;
+    const cy = iy + s / 2;
+    const grad = ctx.createRadialGradient(cx, cy, s * 0.1, cx, cy, s * 0.8);
+    grad.addColorStop(0, "rgba(255, 50, 50, 0.9)");
+    grad.addColorStop(0.4, "rgba(150, 0, 0, 0.6)");
+    grad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(cx, cy, s * 0.8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "rgba(50, 0, 0, 0.8)";
+    ctx.beginPath(); ctx.arc(cx, cy, s * 0.2, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+}
+
+function drawSideWall(x1, y1, h1, x2, y2, h2, theme, bright, side) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.lineTo(x2, y2 + h2);
+    ctx.lineTo(x1, y1 + h1);
+    ctx.closePath();
+    
+    // ベース色の計算
+    const base = theme.wallBaseRGB;
+    const r = Math.floor(base[0] * bright);
+    const g = Math.floor(base[1] * bright);
+    const b = Math.floor(base[2] * bright);
+    
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.fill();
+    ctx.strokeStyle = `rgb(${Math.floor(r*0.5)},${Math.floor(g*0.5)},${Math.floor(b*0.5)})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // クリップして模様を描画
+    ctx.save();
+    ctx.clip();
+    
+    // 側面用の簡易パターン (横線を入れる)
+    ctx.strokeStyle = `rgba(0,0,0,0.3)`;
+    const steps = 6;
+    for(let i=1; i<steps; i++) {
+        const rY1 = y1 + (h1 * i / steps);
+        const rY2 = y2 + (h2 * i / steps);
+        ctx.beginPath();
+        ctx.moveTo(x1, rY1);
+        ctx.lineTo(x2, rY2);
+        ctx.stroke();
+    }
+    
+    // 影を落とす
+    const shadowGrad = ctx.createLinearGradient(x1, 0, x2, 0);
+    if(side === 'left') {
+        shadowGrad.addColorStop(0, "rgba(0,0,0,0)");
+        shadowGrad.addColorStop(1, "rgba(0,0,0,0.6)"); // 奥側を暗く
+    } else {
+        shadowGrad.addColorStop(0, "rgba(0,0,0,0.6)");
+        shadowGrad.addColorStop(1, "rgba(0,0,0,0)");
+    }
+    ctx.fillStyle = shadowGrad;
+    ctx.fill();
+
+    ctx.restore();
+}
+
+// 正面の矩形壁を描画する関数
+function drawWallRect(x, y, w, h, theme, bright, type, depth) {
+    // 1. ベースの塗り（グラデーションで立体感を出す）
+    const base = theme.wallBaseRGB;
+    const r = Math.floor(base[0] * bright);
+    const g = Math.floor(base[1] * bright);
+    const b = Math.floor(base[2] * bright);
+
+    const grad = ctx.createLinearGradient(x, y, x, y + h);
+    grad.addColorStop(0, `rgb(${r},${g},${b})`); // 上部
+    grad.addColorStop(1, `rgb(${Math.floor(r*0.6)},${Math.floor(g*0.6)},${Math.floor(b*0.6)})`); // 下部（暗く）
+    
+    ctx.fillStyle = grad;
+    ctx.fillRect(x, y, w, h);
+
+    // 2. 枠線
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = `rgb(${Math.floor(r*0.3)},${Math.floor(g*0.3)},${Math.floor(b*0.3)})`;
+    ctx.strokeRect(x, y, w, h);
+
+    // 3. ダンジョンタイプ別の模様描画
+    ctx.save();
+    // 描画範囲をクリップ
+    ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+
+    const patternAlpha = 0.3 * bright; // 距離に応じて模様を薄くする
+
+    // === パターン分岐 ===
+    if (theme.type === 'brick') {
+        // [地下迷宮] レンガ模様
+        drawBrickPattern(ctx, x, y, w, h, patternAlpha, 6);
+    } 
+    else if (theme.type === 'forest') {
+        // [迷いの森] 木のような縦線とノイズ
+        drawForestPattern(ctx, x, y, w, h, patternAlpha);
+    }
+    else if (theme.type === 'cave') {
+        // [海底洞窟] 岩肌・水面反射のような波線
+        drawCavePattern(ctx, x, y, w, h, patternAlpha);
+    }
+    else if (theme.type === 'temple') {
+        // [古代神殿] 柱のような装飾と目地
+        drawTemplePattern(ctx, x, y, w, h, patternAlpha);
+    }
+    else if (theme.type === 'tower') {
+        // [天空の塔] 金属パネル風
+        drawTowerPattern(ctx, x, y, w, h, patternAlpha);
+    }
+    
+    ctx.restore();
+}
+
+// --- 各パターンの実装 ---
+
+function drawBrickPattern(ctx, x, y, w, h, alpha, rows) {
+    ctx.strokeStyle = `rgba(0,0,0,${alpha})`;
+    ctx.lineWidth = 2;
+    const rowH = h / rows;
+    
+    for (let i = 0; i <= rows; i++) {
+        const ly = y + i * rowH;
+        // 横線
+        ctx.beginPath(); ctx.moveTo(x, ly); ctx.lineTo(x + w, ly); ctx.stroke();
+        
+        // 縦線（交互にずらす）
+        if (i < rows) {
+            const cols = 4;
+            const colW = w / cols;
+            const offset = (i % 2 === 0) ? 0 : colW / 2;
+            
+            for (let j = 0; j <= cols; j++) {
+                let lx = x + j * colW + offset;
+                if (lx > x && lx < x + w) {
+                    ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx, ly + rowH); ctx.stroke();
+                }
+            }
+        }
+    }
+}
+
+function drawForestPattern(ctx, x, y, w, h, alpha) {
+    // 縦の木目
+    ctx.strokeStyle = `rgba(20, 40, 20, ${alpha})`;
+    ctx.lineWidth = 3;
+    const count = 5;
+    for(let i=1; i<count; i++) {
+        const lx = x + (w * i / count);
+        // 少しゆらぎを入れる
+        ctx.beginPath();
+        ctx.moveTo(lx, y);
+        ctx.bezierCurveTo(lx - 5, y + h/2, lx + 5, y + h, lx, y + h);
+        ctx.stroke();
+    }
+    
+    // 葉っぱのノイズ
+    ctx.fillStyle = `rgba(50, 80, 50, ${alpha * 0.8})`;
+    for(let i=0; i<20; i++) {
+        const rx = x + Math.random() * w;
+        const ry = y + Math.random() * h;
+        const s = w * 0.05;
+        ctx.beginPath(); ctx.arc(rx, ry, s, 0, Math.PI*2); ctx.fill();
+    }
+}
+
+function drawCavePattern(ctx, x, y, w, h, alpha) {
+    // 岩の亀裂（ランダム線）
+    ctx.strokeStyle = `rgba(0, 0, 40, ${alpha})`;
+    ctx.lineWidth = 2;
+    
+    for(let i=0; i<5; i++) {
+        const sy = y + Math.random() * h;
+        const ey = y + Math.random() * h;
+        ctx.beginPath();
+        ctx.moveTo(x, sy);
+        ctx.lineTo(x + w/2, (sy + ey)/2 + (Math.random()*10 - 5));
+        ctx.lineTo(x + w, ey);
+        ctx.stroke();
+    }
+    
+    // 水の反射（下の方に薄い青）
+    const grad = ctx.createLinearGradient(x, y+h*0.7, x, y+h);
+    grad.addColorStop(0, "rgba(100, 200, 255, 0)");
+    grad.addColorStop(1, `rgba(100, 200, 255, ${alpha * 0.5})`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(x, y+h*0.7, w, h*0.3);
+}
+
+function drawTemplePattern(ctx, x, y, w, h, alpha) {
+    // 柱のような装飾（左右に縦ライン）
+    ctx.fillStyle = `rgba(0,0,0,${alpha * 0.5})`;
+    const pW = w * 0.15;
+    ctx.fillRect(x + w * 0.1, y, pW, h); // 左柱
+    ctx.fillRect(x + w * 0.75, y, pW, h); // 右柱
+    
+    // ヒエログリフ風の点
+    ctx.fillStyle = `rgba(150, 120, 50, ${alpha})`;
+    for(let i=0; i<10; i++) {
+        const rx = x + w * 0.3 + Math.random() * (w * 0.4);
+        const ry = y + Math.random() * h;
+        ctx.fillRect(rx, ry, w*0.05, h*0.02);
+    }
+}
+
+function drawTowerPattern(ctx, x, y, w, h, alpha) {
+    // 金属パネル（大きな格子）
+    ctx.strokeStyle = `rgba(100, 100, 120, ${alpha})`;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, w, h); // 外枠
+    
+    // 中央線
+    ctx.beginPath(); ctx.moveTo(x, y + h/2); ctx.lineTo(x + w, y + h/2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x + w/2, y); ctx.lineTo(x + w/2, y + h); ctx.stroke();
+    
+    // リベット（四隅）
+    ctx.fillStyle = `rgba(200, 200, 220, ${alpha})`;
+    const r = w * 0.03;
+    const pad = w * 0.05;
+    
+    const drawBolt = (bx, by) => { ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI*2); ctx.fill(); };
+    drawBolt(x + pad, y + pad);
+    drawBolt(x + w - pad, y + pad);
+    drawBolt(x + pad, y + h - pad);
+    drawBolt(x + w - pad, y + h - pad);
 }
 
 function drawIcon(ctx, x, y, size, type) {
@@ -2248,55 +2765,61 @@ function discardItem(index) {
         openItemMenu();
     }
 }
-function selectItemTarget(itemId) { const it = itemData[itemId]; if(it.type !== 'consumable') { alert(`これは${it.name}です。装備メニューから装備してください。`); return; } if(battleSpellMode === 'item') { document.getElementById('sub-menu-overlay').style.display='none'; toggleControls('target'); ['btn-target-0','btn-target-1','btn-target-2'].forEach((id,i) => { document.getElementById(id).innerText=`${party[i].name}`; document.getElementById(id).onclick = () => executeBattleItem(itemId, i); }); return; } if(it.effect === 'warp') { useItem(itemId, null); return; } showSubMenu(party.map((p,i) => `<button class="btn" onclick="useItem('${itemId}', ${i})">${p.name}</button>`).join(''), "誰に使う？"); }
+function selectItemTarget(itemId) { const it = itemData[itemId]; if(it.type !== 'consumable') { alert(`これは${it.name}です。装備メニューから装備してください。`); return; } if(battleSpellMode === 'item') { document.getElementById('sub-menu-overlay').style.display='none'; toggleControls('target'); ['btn-target-0','btn-target-1','btn-target-2','btn-target-3'].forEach((id,i) => { document.getElementById(id).innerText=`${party[i].name}`; document.getElementById(id).onclick = () => executeBattleItem(itemId, i); }); return; } if(it.effect === 'warp') { useItem(itemId, null); return; } showSubMenu(party.map((p,i) => `<button class="btn" onclick="useItem('${itemId}', ${i})">${p.name}</button>`).join(''), "誰に使う？"); }
 function useItem(itemId, targetIdx) { const item = itemData[itemId]; const invIdx = partyInventory.indexOf(itemId); if(invIdx > -1) partyInventory.splice(invIdx, 1); if(item.effect === 'warp') { alert("光に包まれた！"); closeSubMenu(); closeCamp(); returnToTown(true); return; } const t = party[targetIdx]; if(item.effect === 'heal') { t.hp += item.power; if(t.hp > t.maxHp) t.hp = t.maxHp; alert(`${t.name}は回復した`); } else if(item.effect === 'curePoison') { if(t.status === 'poison') { t.status='normal'; alert("毒が消えた"); } else alert("効果がなかった"); } else if(item.effect === 'curePara') { if(t.status === 'paralyze') { t.status='normal'; alert("麻痺が治った"); } else alert("効果がなかった"); } if(document.getElementById('dungeon-scene').style.display === 'flex') updateDungeonUI(); else updateTownStatus(); openItemMenu(); }
 function showSubMenu(html, title) { document.getElementById('sub-menu-overlay').style.display='flex'; document.getElementById('sub-menu-title').innerText = title; document.getElementById('sub-menu-content').innerHTML = html; }
+// ★既存関数を修正: 閉じるボタンの挙動に 'spell' モードを追加
 function closeSubMenu() { 
     document.getElementById('sub-menu-overlay').style.display='none'; 
     
-    // 戦闘中のアイテム使用時など
+    // 戦闘中のアイテム選択モードからの戻り
     if(battleSpellMode === 'item') { 
         toggleControls('battle'); 
-        battleSpellMode = 'spell'; 
+        battleSpellMode = null; 
         return;
     }
     
-    // ★追加箇所: ダンジョンからの直接呼び出しなら、キャンプを開かずにダンジョンへ戻る
-    if(menuReturnTo === 'direct') {
-        toggleControls('move'); // 移動ボタンを表示
+    // ★追加: 戦闘中の呪文選択モードからの戻り
+    if(battleSpellMode === 'spell') {
+        toggleControls('battle');
+        battleSpellMode = null;
         return;
     }
 
-    // 通常（キャンプ経由）の場合はキャンプメニューに戻る
+    // ダンジョン内メニューからの戻り
+    if(menuReturnTo === 'direct') {
+        toggleControls('move'); 
+        return;
+    }
+
+    // 通常キャンプメニューへの戻り
     document.getElementById('camp-overlay').style.display='flex'; 
 }
+// --- ★修正: ステータス画面での表示 ---
 function openStatusMenu() { 
     document.getElementById('camp-overlay').style.display = 'none'; 
     document.getElementById('status-scene').style.display = 'flex'; 
     const con = document.getElementById('status-content'); con.innerHTML = ''; 
     
     party.forEach(p => { 
+        // ... (装備・ステータス表示部分は維持) ...
         let w = getEquipString(p.equips.weapon); 
         let a = getEquipString(p.equips.armor); 
         let s = getEquipString(p.equips.shield); 
         let h = getEquipString(p.equips.helm); 
         let ac = getEquipString(p.equips.acc); 
         
-        // 変数名は nextReq で定義されています
         let nextReq = (p.level >= 20) ? 0 : (p.level * 50) - p.exp; 
         if (nextReq < 0) nextReq = 0; 
 
-        // 装備ボーナスの計算
+        // ステータス表示ロジック (省略せず維持してください)
         let bonuses = { str:0, int:0, pie:0, vit:0, agi:0, luc:0 };
         for(let slot in p.equips) {
             const eq = p.equips[slot];
             if(eq && eq.bonus) {
-                for(let k in bonuses) {
-                    if(eq.bonus[k]) bonuses[k] += eq.bonus[k];
-                }
+                for(let k in bonuses) if(eq.bonus[k]) bonuses[k] += eq.bonus[k];
             }
         }
-        
         const fmtStat = (key, label) => {
             const base = p.stats[key];
             const add = bonuses[key];
@@ -2308,19 +2831,37 @@ function openStatusMenu() {
             return `<div>${label}: ${base}${addStr}</div>`;
         };
 
+        // --- ★修正箇所: 習得リストを魔法と特技に分ける ---
         let spellListHtml = ""; 
-        const spellKeys = Object.keys(p.spells); 
-        if(spellKeys.length > 0) { 
-            spellListHtml = `<div style="margin-top:8px; border-top:1px dashed #444; padding-top:5px;"><div style="font-size:0.8em; color:#aaa; margin-bottom:3px;">習得済み:</div><div style="display:flex; flex-wrap:wrap; gap:5px;">`; 
-            for(let k in p.spells) { 
-                const sp = p.spells[k]; 
-                if(sp.max > 0) { 
-                    spellListHtml += `<span style="background:#333; padding:2px 6px; border-radius:4px; font-size:0.8em; border:1px solid #555;">${ELEM_ICONS[sp.element]||""}${sp.name} <span style="color:#8ff;">${sp.current}/${sp.max}</span></span>`; 
-                } 
-            } 
-            spellListHtml += `</div></div>`; 
+        const magicList = [];
+        const skillList = [];
+
+        for(let k in p.spells) { 
+            const sp = p.spells[k]; 
+            if(sp.max > 0) {
+                if (isPhysicalSkill(sp)) skillList.push(sp);
+                else magicList.push(sp);
+            }
         }
 
+        const renderTags = (list, label) => {
+            if (list.length === 0) return "";
+            let res = `<div style="font-size:0.8em; color:#aaa; margin-top:3px;">${label}:</div><div style="display:flex; flex-wrap:wrap; gap:5px;">`;
+            list.forEach(sp => {
+                let icon = isPhysicalSkill(sp) ? (ELEM_ICONS[sp.element]||"⚔️") : (ELEM_ICONS[sp.element]||"");
+                res += `<span style="background:#333; padding:2px 6px; border-radius:4px; font-size:0.8em; border:1px solid #555;">${icon}${sp.name} <span style="color:#8ff;">${sp.current}/${sp.max}</span></span>`;
+            });
+            res += `</div>`;
+            return res;
+        };
+
+        if (magicList.length > 0 || skillList.length > 0) {
+            spellListHtml = `<div style="margin-top:8px; border-top:1px dashed #444; padding-top:5px;">`;
+            spellListHtml += renderTags(magicList, "魔法");
+            spellListHtml += renderTags(skillList, "特技");
+            spellListHtml += `</div>`;
+        }
+        
         let html = `<div class="status-card" style="display:block;">
             <div style="display:flex; align-items:center; border-bottom:1px solid #555; margin-bottom:5px; padding-bottom:5px;">
                 <img src="${p.img}" class="hero-icon-lg" style="width:40px;height:40px;margin-right:10px;">
@@ -2346,6 +2887,7 @@ function openStatusMenu() {
         con.innerHTML += html; 
     }); 
 }
+
 function closeStatusMenu() { document.getElementById('status-scene').style.display = 'none'; document.getElementById('camp-overlay').style.display = 'flex'; }
 
 // --- 戦闘システム ---
@@ -2362,7 +2904,10 @@ function startBattle() {
 
     if(validEnemies.length === 0) return; 
 
-    const count = Math.floor(Math.random() * 2) + 1; 
+    // ★修正: 出現数を 1～3匹 に変更
+    // Math.random() * 3 で 0, 1, 2 のいずれかになり、+1 して 1, 2, 3 になります
+    const count = Math.floor(Math.random() * 3) + 1; 
+
     let enemyList = [];
     const suffix = ["A", "B", "C"];
     let nameCounts = {}; 
@@ -2413,26 +2958,24 @@ function startBossBattle() {
     // ★修正: isEnemy: true を追加しました
     setupBattle([{ ...boss, maxHp: boss.hp, isBoss: true, id: 0, isEnemy: true }]);
 }
-// --- game.js の setupBattle 関数をこれに置き換えてください ---
-
 function setupBattle(enemyList) { 
     isBattle = true; 
     enemies = enemyList;
     
     // ★修正: 敵のステータス(攻撃力・防御力)を以前のバランスに合わせて自動計算
     enemies.forEach(e => {
-    // 攻撃力が未定義の場合のみ自動計算
-    if (e.atk === undefined) {
-        let baseDmg = 5 + (currentDungeonId * currentDungeonId * 4);
-        if (e.isBoss) baseDmg += 20; 
-        e.atk = Math.floor(baseDmg * 2.2);
-    }
-    
-    // 防御力が未定義の場合のみ自動計算
-    if (e.def === undefined) {
-        e.def = Math.floor((e.agi || 10) / 2);
-    }
-});
+        // 攻撃力が未定義の場合のみ自動計算
+        if (e.atk === undefined) {
+            let baseDmg = 5 + (currentDungeonId * currentDungeonId * 4);
+            if (e.isBoss) baseDmg += 20; 
+            e.atk = Math.floor(baseDmg * 2.2);
+        }
+        
+        // 防御力が未定義の場合のみ自動計算
+        if (e.def === undefined) {
+            e.def = Math.floor((e.agi || 10) / 2);
+        }
+    });
     
     const mainArea = document.getElementById('main-area');
     const originalImg = document.getElementById('enemy-img');
@@ -2452,8 +2995,18 @@ function setupBattle(enemyList) {
         container.style.zIndex = '10';
         container.style.textAlign = 'center';
         
+        // ★修正: 3匹の場合の配置ロジックを追加
         let leftPos = '50%';
-        if(enemies.length === 2) leftPos = (idx === 0) ? '35%' : '65%';
+        if (enemies.length === 2) {
+            // 2匹の場合: 左右に振り分け (35%, 65%)
+            leftPos = (idx === 0) ? '35%' : '65%';
+        } else if (enemies.length === 3) {
+            // 3匹の場合: 左・中央・右 に配置 (25%, 50%, 75%)
+            if (idx === 0) leftPos = '25%';
+            else if (idx === 1) leftPos = '50%';
+            else leftPos = '75%';
+        }
+        
         container.style.left = leftPos;
 
         const nameLabel = document.createElement('div');
@@ -2546,35 +3099,28 @@ function startInputPhase(isFirst=false) {
     if(backBtn) backBtn.style.display = (activeMemberIndex > 0) ? 'flex' : 'none';
 }
 // --- ターン実行フェーズ (行動順決定) ---
-
 function startTurnExecution() {
-    // ★修正: 二重起動防止のif文を削除しました
-    // (ターゲット選択時などに誤作動して止まってしまうため)
-
     toggleControls('none');
     document.getElementById('battle-msg').innerText = "⚔️ 戦闘開始...";
 
-    // 行動キューを明示的にリセット (これは残します)
     turnQueue = [];
 
     // 1. 敵の行動を決定
     enemies.forEach((e, i) => {
         if(e.hp <= 0) return;
         
-        // 敵のステータスチェック
         if ([STATUS.STONE, STATUS.SLEEP, STATUS.PARALYZE, STATUS.STUN].includes(e.status)) {
              turnQueue.push({ type: 'skip', isEnemy: true, enemyIndex: i, name: e.name, agi: e.agi, status: e.status });
              return;
         }
 
-        // 敵AIによる行動決定
         const act = decideEnemyAction(e);
         turnQueue.push({ 
             ...act, 
             isEnemy: true, 
             enemyIndex: i, 
             name: e.name, 
-            agi: e.agi, // 基礎AGI
+            agi: e.agi, 
             luc: e.luc
         });
     });
@@ -2582,8 +3128,12 @@ function startTurnExecution() {
     // 2. 味方の行動をキューに追加
     actionQueue.forEach(act => {
         const p = party[act.actorIndex];
-        // 装備補正込みのAGIを取得
-        let finalAgi = p.stats.agi;
+        
+        // ★修正: レベルによる行動速度補正を追加 (Lv * 1.5)
+        // これにより、素早さに振らなくてもレベルが上がれば雑魚敵には先制しやすくなる
+        let levelBonus = Math.floor(p.level * 1.5);
+        let finalAgi = p.stats.agi + levelBonus;
+
         // 装備ボーナスの加算
         for(let s in p.equips) {
              if(p.equips[s] && p.equips[s].bonus && p.equips[s].bonus.agi) finalAgi += p.equips[s].bonus.agi;
@@ -2599,14 +3149,13 @@ function startTurnExecution() {
 
     // 3. 行動順のソート (AGI + ランダム揺らぎ)
     turnQueue.sort((a, b) => {
-        const speedA = a.agi * (0.9 + Math.random() * 0.2); // ±10%の揺らぎ
+        const speedA = a.agi * (0.9 + Math.random() * 0.2); 
         const speedB = b.agi * (0.9 + Math.random() * 0.2);
         
-        // 防御は最速行動
         if(a.type === 'defend' && b.type !== 'defend') return -1;
         if(b.type === 'defend' && a.type !== 'defend') return 1;
 
-        return speedB - speedA; // 降順
+        return speedB - speedA; 
     });
 
     // 4. 実行開始
@@ -2757,10 +3306,12 @@ function executeAction({ type, actor, target, spellKey, itemId, isConfused }) {
     
     const isEnemyAction = actor.isEnemy;
 
+    // --- 防御 ---
     if (type === 'defend') {
         actor.isDefending = true;
         log(`${actor.name}は身を守っている。`, isEnemyAction);
     } 
+    // --- 逃走 ---
     else if (type === 'run') {
         if (Math.random() < 0.5) { 
             log(`${actor.name}は逃げ出した！`, isEnemyAction);
@@ -2769,30 +3320,27 @@ function executeAction({ type, actor, target, spellKey, itemId, isConfused }) {
             log(`${actor.name}は逃げられなかった！`, isEnemyAction);
         }
     }
+    // --- 通常攻撃 ---
     else if (type === 'attack') {
         if(!target) { log("攻撃対象がいない！"); setTimeout(processTurnQueue, 500); return; }
         
-        // ★物理属性ロジックここから
-        const physType = getWeaponPhysType(actor);
-        
+        // 物理属性エフェクト判定
+        const physType = getWeaponPhysType(actor); // 'slash', 'blunt', 'pierce', 'none'
+        const vfxName = (physType === 'none') ? 'blunt' : physType;
+
         const vfxIdx = getTargetVfxIndex(target);
-        if (vfxIdx !== null) playVfx('slash', vfxIdx);
-        else playVfx('damage');
+        if (vfxIdx !== null) playVfx(vfxName, vfxIdx); // 武器ごとのエフェクト再生
+        else playVfx('damage'); // ターゲットが画面にいない(味方被弾)場合は汎用ダメージ
         
+        // ダメージ計算
         const critRate = (actor.stats ? actor.stats.luc : actor.luc) * 0.005; 
         const isCrit = Math.random() < critRate;
         
-        // ★属性相性倍率の計算
+        // 属性相性倍率
         let mod = 1.0;
         if (target.resist) {
-            // 1. 個別の物理属性耐性 (slash, pierce, blunt)
-            if (target.resist[physType] !== undefined) {
-                mod *= target.resist[physType];
-            }
-            // 2. 全物理耐性 (phys) ※ゴーストなどの「物理半減」用
-            if (target.resist.phys !== undefined) {
-                mod *= target.resist.phys;
-            }
+            if (target.resist[physType] !== undefined) mod *= target.resist[physType];
+            if (target.resist.phys !== undefined) mod *= target.resist.phys;
         }
 
         let dmg = calculateDamage(actor, target, mod, isCrit);
@@ -2802,26 +3350,30 @@ function executeAction({ type, actor, target, spellKey, itemId, isConfused }) {
         
         log(msg, isEnemyAction);
         
-        // ★弱点・耐性のヒントログ
+        // 弱点・耐性のヒントログ
         if (!isCrit && mod > 1.0) log(`(弱点をついた！)`, isEnemyAction);
         if (mod < 1.0 && mod > 0) log(`(効きが悪いようだ...)`, isEnemyAction);
         if (mod === 0) log(`(全く効かない！)`, isEnemyAction);
         
         takeDamage(target, dmg, actor.elem || ELEM.NONE, isCrit);
         
+        // 追加効果判定 (毒麻痺など)
         if(actor.effect && actor.rate && target.hp > 0 && target.status === STATUS.NORMAL) {
             if(Math.random() < actor.rate) {
                 applyStatusEffect(target, actor.effect);
             }
         }
     }
+    // --- 呪文・スキル ---
     else if (type === 'spell') {
         const spell = actor.spells ? actor.spells[spellKey] : spellData[spellKey]; 
         
+        // MP(回数)消費
         if(actor.spells && actor.spells[spellKey]) actor.spells[spellKey].current--;
 
         log(`${actor.name}は${spell.name}を唱えた！`, isEnemyAction);
         
+        // (A) 回復・治療魔法
         if(spell.type === 'heal' || spell.type === 'cure') {
             playVfx('heal');
             const targets = (spell.target === 'all') ? party : [target];
@@ -2840,6 +3392,7 @@ function executeAction({ type, actor, target, spellKey, itemId, isConfused }) {
                 }
             });
         } 
+        // (B) 弱体魔法
         else if (spell.type === 'enfeeble') { 
              playVfx('dark');
              const targets = (spell.target === 'all') ? (actor.isEnemy ? party : enemies) : [target];
@@ -2859,22 +3412,28 @@ function executeAction({ type, actor, target, spellKey, itemId, isConfused }) {
                  }
              });
         }
+        // (C) 物理スキル (斬撃など)
         else if (spell.type === 'phys') {
              const targets = (spell.target === 'all') ? (actor.isEnemy ? party : enemies) : [target];
-             if(actor.isEnemy) playVfx('damage'); 
-             else {
-                 const vfxIdx = getTargetVfxIndex(target); 
-                 if (vfxIdx !== null) playVfx('slash', vfxIdx);
-             }
+             
+             // 属性に応じたエフェクト (デフォルトはslash)
+             let vfxName = 'slash';
+             if(spell.element === ELEM.EARTH) vfxName = 'earth';
+             
              targets.forEach(t => {
+                 const tIdx = getTargetVfxIndex(t);
+                 if (tIdx !== null) playVfx(vfxName, tIdx);
+                 else if (actor.isEnemy) playVfx('damage'); // 味方全体被弾時
+
                  if(t.hp > 0) {
                      let dmg = calculateDamage(actor, t, spell.mult);
                      takeDamage(t, dmg, spell.element || ELEM.NONE);
                  }
              });
         }
-        else { // 攻撃魔法
-             // ターゲット生存チェック (nullの場合は処理を中断)
+        // (D) 攻撃魔法 (火・水など)
+        else { 
+             // ターゲット生存チェック
              if (spell.target !== 'all' && !target) {
                  log("しかし効果がなかった。");
                  updateDungeonUI();
@@ -2884,18 +3443,22 @@ function executeAction({ type, actor, target, spellKey, itemId, isConfused }) {
 
              const targets = (spell.target === 'all') ? (actor.isEnemy ? party : enemies) : [target];
              
-             // エフェクトの表示 (呪文の種類やターゲットに合わせて動的に変更)
-             // 簡易的に魔法はすべて 'fire' エフェクト、ターゲットIDを正しく渡す
-             // ターゲットが配列(全体魔法)の場合は代表して0番目、単体ならそのターゲットIDを指定
-             const vfxTargetId = (spell.target === 'all') ? null : (target ? getTargetVfxIndex(target) : null);
-             
-             // ターゲットが存在する場合のみエフェクト再生
-             if (spell.target === 'all' || vfxTargetId !== null) {
-                 playVfx('fire', vfxTargetId); 
-             }
+             // 魔法属性に応じたエフェクト決定
+             // 定義: ["slash", "fire", "water", "earth", "wind", "light", "dark"]
+             let vfxName = ELEM_VFX_MAP[spell.element] || 'fire';
 
              targets.forEach(t => {
-                 // t が null でないことを確認してから HP チェックを行う
+                 const tIdx = getTargetVfxIndex(t);
+                 
+                 // エフェクト再生
+                 if(tIdx !== null) {
+                     playVfx(vfxName, tIdx);
+                 } 
+                 else if(spell.target === 'all' && actor.isEnemy) {
+                     // 味方全体への攻撃魔法（画面中央に1回出す）
+                     playVfx(vfxName); 
+                 }
+
                  if(t && t.hp > 0) {
                      let baseDmg = spell.power + (actor.stats ? actor.stats.int : actor.int || 20);
                      let mod = getElementMultiplier(spell.element, t.elem);
@@ -2905,6 +3468,7 @@ function executeAction({ type, actor, target, spellKey, itemId, isConfused }) {
              });
         }
     }
+    // --- アイテム使用 ---
     else if (type === 'item') {
         const item = itemData[itemId];
         log(`${actor.name}は${item.name}を使った。`, isEnemyAction);
@@ -3142,27 +3706,95 @@ function fight(act) {
         startInputPhase();
     }
 }
-function openSpellMenu() { 
-    toggleControls('spell'); 
-    const p = party[activeMemberIndex]; 
-    const container = document.getElementById('spell-controls');
-    container.innerHTML = ''; container.style.gridTemplateColumns = "repeat(2, 1fr)";
+function openSpellMenu() {
+    battleSpellMode = 'spell';
+    toggleControls('none'); 
     
-    let count = 0;
+    const p = party[activeMemberIndex];
+    let html = "";
+    
+    // 習得済み呪文・特技を分類
+    const magicList = [];
+    const skillList = [];
+
     for(let key in p.spells) {
         const spell = p.spells[key];
-        if(spell.max === 0) continue; 
-        const btn = document.createElement('button');
-        btn.className = 'btn';
-        btn.style.fontSize = '0.8em';
-        btn.innerHTML = `${ELEM_ICONS[spell.element]||""}${spell.name}<br>(${spell.current})`;
-        btn.disabled = spell.current <= 0;
-        btn.onclick = () => preCastSpell(key);
-        container.appendChild(btn);
-        count++;
+        if(spell.max === 0) continue; // 未習得は除外
+        
+        if (isPhysicalSkill(spell)) {
+            skillList.push({key, spell});
+        } else {
+            magicList.push({key, spell});
+        }
     }
-    const backBtn = document.createElement('button'); backBtn.className = 'btn'; backBtn.style.gridColumn = "1 / -1"; backBtn.innerText = "戻る"; backBtn.onclick = closeSpellMenu; container.appendChild(backBtn);
+
+    // --- リスト生成用関数 ---
+    const generateListHtml = (list, title) => {
+        if (list.length === 0) return "";
+        let sectionHtml = `<div style="grid-column:1/-1; color:#ffd700; border-bottom:1px solid #555; margin-top:10px; margin-bottom:5px; padding-left:5px; font-weight:bold;">${title}</div>`;
+        
+        list.forEach(item => {
+            const { key, spell } = item;
+            const canCast = spell.current > 0;
+            
+            // アイコン設定 (物理なら剣、魔法なら属性または杖)
+            let icon = "";
+            if (isPhysicalSkill(spell)) {
+                icon = ELEM_ICONS[spell.element] || "⚔️"; // 物理はデフォルト剣
+            } else {
+                icon = ELEM_ICONS[spell.element] || "🪄"; // 魔法はデフォルト杖
+            }
+
+            const targetStr = spell.target === 'all' ? "全体" : "単体";
+            let descText = spell.desc || "特殊効果";
+            if(spell.power && spell.power > 0) descText += ` <span style="font-size:0.9em; color:#ffaaaa;">(威力:${spell.power})</span>`;
+            if(spell.mult) descText += ` <span style="font-size:0.9em; color:#ffaaaa;">(倍率:${spell.mult}x)</span>`;
+
+            const nameColor = canCast ? "#fff" : "#888";
+            const bgStyle = canCast ? "" : "opacity: 0.6;";
+
+            sectionHtml += `
+            <div class="shop-item" onclick="${canCast ? `selectBattleSpell('${key}')` : ''}" style="${bgStyle}">
+                <div class="shop-info" style="pointer-events:none; flex:1;">
+                    <div class="shop-row">
+                        <span class="shop-name" style="color:${nameColor}; font-size:1em;">
+                            ${icon} ${spell.name}
+                        </span>
+                        <span class="shop-price" style="color:#8ff; font-family:monospace;">
+                            残:${spell.current}
+                        </span>
+                    </div>
+                    <div class="shop-desc" style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+                        <span style="flex:1; margin-right:5px;">${descText}</span>
+                        <span style="color:#aaa; white-space:nowrap;">[${targetStr}]</span>
+                    </div>
+                </div>
+                <button class="btn shop-btn" ${!canCast ? 'disabled' : ''} style="min-width:60px; height:40px;">選択</button>
+            </div>
+            `;
+        });
+        return sectionHtml;
+    };
+
+    html += generateListHtml(magicList, "【 魔法 】");
+    html += generateListHtml(skillList, "【 特技 】");
+    
+    if (html === "") {
+        html = "<div style='padding:20px; text-align:center; color:#aaa;'>使える呪文・特技がありません</div>";
+    }
+    
+    showSubMenu(html, `${p.name}の行動選択`);
 }
+
+// ★新規追加: リストから呪文を選んだ時の処理
+function selectBattleSpell(spellKey) {
+    // メニューを閉じる (ただし battleSpellMode はリセットせず、ターゲット選択へ移行)
+    document.getElementById('sub-menu-overlay').style.display = 'none';
+    
+    // 既存の呪文準備処理を呼び出す (ターゲット選択ボタンの表示など)
+    preCastSpell(spellKey);
+}
+
 
 function preCastSpell(spellKey) {
     const p = party[activeMemberIndex];
@@ -3172,10 +3804,15 @@ function preCastSpell(spellKey) {
         startInputPhase();
     } else if (spell.type === 'heal' || spell.type === 'buff') {
         toggleControls('target'); 
-        ['btn-target-0','btn-target-1','btn-target-2'].forEach((id,i) => { 
-            document.getElementById(id).style.display = 'inline-block';
-            document.getElementById(id).innerText=`${party[i].name}`; 
-            document.getElementById(id).onclick = () => { actionQueue.push({type:'spell', spellKey:spellKey, actorIndex:activeMemberIndex, targetIndex:i, name:p.name}); startInputPhase(); };
+        // ★ここを修正: 'btn-target-3' を追加
+        ['btn-target-0','btn-target-1','btn-target-2','btn-target-3'].forEach((id,i) => { 
+            if(party[i]) {
+                document.getElementById(id).style.display = 'inline-block';
+                document.getElementById(id).innerText=`${party[i].name}`; 
+                document.getElementById(id).onclick = () => { actionQueue.push({type:'spell', spellKey:spellKey, actorIndex:activeMemberIndex, targetIndex:i, name:p.name}); startInputPhase(); };
+            } else {
+                document.getElementById(id).style.display = 'none';
+            }
         });
         document.querySelector('#target-controls button:last-child').onclick = openSpellMenu;
     } else {
@@ -3185,7 +3822,8 @@ function preCastSpell(spellKey) {
 
 function openEnemyTargetMenu(actionType, spellKey=null) {
     toggleControls('target');
-    const btns = ['btn-target-0','btn-target-1','btn-target-2'];
+    // ★ここを修正: 'btn-target-3' を追加
+    const btns = ['btn-target-0','btn-target-1','btn-target-2','btn-target-3'];
     btns.forEach(id => document.getElementById(id).style.display = 'none'); 
     enemies.forEach((e, i) => {
         if(e.hp <= 0) return; 
@@ -3391,7 +4029,7 @@ function toggleControls(mode) {
     else if(mode==='target') document.getElementById('target-controls').style.display='grid';
     else if(mode==='move') { document.getElementById('move-controls').style.display='grid'; checkObject(); }
 }
-// --- game.js の playVfx 関数をこれに置き換えてください ---
+// game.js の playVfx 関数をこれに置き換えてください
 
 function playVfx(t, targetIdx=null){
     const l=document.getElementById('vfx-layer');
@@ -3400,14 +4038,19 @@ function playVfx(t, targetIdx=null){
     let targetUnit = null;
     if(targetIdx !== null) targetUnit = document.getElementById(`enemy-unit-${targetIdx}`);
     
-    // 斬撃(slash) または 炎(fire) の場合
-    if(t==='slash'||t==='fire'){
-        d.className=(t==='slash')?'vfx-slash':'vfx-fire';
-        
+    // エフェクトの種類ごとにクラスを適用
+    // 追加した属性: blunt, pierce, water, wind, earth, light, dark
+    if(t) d.className = `vfx-${t}`;
+    
+    // ターゲット指定がある攻撃系エフェクトの場合
+    // (slash, fire, blunt, pierce, water, wind, earth, light, dark)
+    const targetEffects = ['slash','fire','blunt','pierce','water','wind','earth','light','dark'];
+    
+    if(targetEffects.includes(t)){
         if(targetUnit) {
             // ① 対象が敵の場合：敵画像を揺らす
             targetUnit.classList.remove('shake-enemy');
-            void targetUnit.offsetWidth; // リフロー（再描画）強制
+            void targetUnit.offsetWidth; // リフロー
             targetUnit.classList.add('shake-enemy');
             
             // エフェクトを敵の位置に合わせる
@@ -3416,29 +4059,32 @@ function playVfx(t, targetIdx=null){
             d.style.top = targetUnit.style.top;
         } else {
             // ② 対象がプレイヤー（または全体）の場合：画面全体を揺らす
-            // これが不足していたため、被弾時の揺れが消えていました
             m.classList.remove('shake-screen');
-            void m.offsetWidth; // リフロー強制
+            void m.offsetWidth; // リフロー
             m.classList.add('shake-screen');
             
-            // エフェクトは画面中央に出す（CSSのデフォルト位置）
+            // エフェクトは画面中央
             d.style.position = 'absolute';
             d.style.left = '50%';
             d.style.top = '50%';
             d.style.transform = 'translate(-50%, -50%)';
         }
     } 
-    else if(t==='heal'){ d.className='vfx-heal'; } 
-    else if(t==='damage' || t==='dark'){ // dark魔法などもここに追加しておくと良いです
-        d.className='vfx-damage';
+    else if(t==='heal'){ 
+        // 回復エフェクト(画面全体が緑っぽく光るなどCSSで制御)
+        // 必要なら位置調整
+    } 
+    else if(t==='damage'){ 
+        // 汎用ダメージ(画面揺れ)
         m.classList.remove('shake-screen');
         void m.offsetWidth;
         m.classList.add('shake-screen');
     }
     
     l.appendChild(d);
-    setTimeout(()=>d.remove(),1000);
+    setTimeout(()=>d.remove(), 1000); // 1秒後にDOM削除
 }
+
 // game.js の initMapUI 関数を置き換え
 
 function initMapUI() {

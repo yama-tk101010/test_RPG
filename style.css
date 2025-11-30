@@ -401,18 +401,8 @@ h1, h2 {
 /* =========================================
    VFX (エフェクト) & アニメーション
    ========================================= */
-.vfx-slash { 
-    position: absolute; 
-    width: 200px; 
-    height: 4px; 
-    background: #fff; 
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(-45deg); 
-    animation: anim-slash 0.2s forwards; 
-    z-index: 20;
-}
-.vfx-fire, .vfx-heal { top: 0; left: 0; }
+
+.vfx-heal { top: 0; left: 0; }
 .vfx-damage {
     position: absolute;
     top: 0;
@@ -423,6 +413,218 @@ h1, h2 {
     animation: anim-flash 0.2s forwards;
     z-index: 30;
     pointer-events: none;
+}
+
+/* =========================================
+   追加エフェクト定義
+   ========================================= */
+
+/* --- 物理属性 --- */
+
+/* 斬撃 (既存のvfx-slashをベースに調整してもOKですが、ここではそのまま利用) */
+.vfx-slash { 
+    position: absolute; 
+    width: 200px;   /* 初期サイズ */
+    height: 8px;    /* 太さを出して存在感を強調 */
+    
+    /* 両端が透明で、中心が鋭く光るグラデーション（剣閃を表現） */
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.8) 20%, #ffffff 50%, rgba(255,255,255,0.8) 80%, transparent 100%);
+    
+    top: 50%;
+    left: 50%;
+    
+    /* ベースの位置・回転 */
+    transform: translate(-50%, -50%) rotate(-45deg); 
+    
+    /* 強い発光表現 */
+    box-shadow: 0 0 15px rgba(200, 240, 255, 0.9);
+    
+    opacity: 0;
+    
+    /* 鋭い加速をつけるイージング */
+    animation: anim-slash 0.25s cubic-bezier(0.22, 0.61, 0.36, 1) forwards; 
+    
+    z-index: 20;
+    mix-blend-mode: screen; /* 背景と合成して明るく見せる */
+}
+
+@keyframes anim-slash {
+    0% { 
+        width: 50px; 
+        opacity: 0; 
+        /* 斬り始め：少し手前から、縮こまった状態 */
+        transform: translate(-60%, -60%) rotate(-45deg) scale(0.5); 
+    }
+    40% { 
+        width: 250px; 
+        opacity: 1; 
+        /* インパクト：最大サイズで強く光る */
+        transform: translate(-50%, -50%) rotate(-45deg) scale(1.1); 
+    }
+    100% { 
+        width: 280px; 
+        opacity: 0; 
+        /* フォロースルー：斬り抜けた方向へ少し移動しながら消える */
+        transform: translate(-30%, -30%) rotate(-45deg) scale(1.2); 
+    }
+}
+
+/* ① 打撃 (Blunt): より重厚な衝撃波に修正 */
+.vfx-blunt {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    /* 中心が白く、外側に衝撃波が広がるグラデーション */
+    background: radial-gradient(circle, rgba(255,255,255,1) 20%, rgba(255,200,100,0.5) 40%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.2);
+    opacity: 0;
+    animation: anim-blunt 0.25s cubic-bezier(0.1, 0.8, 0.2, 1) forwards; /* ドンッという緩急 */
+    box-shadow: 0 0 20px rgba(255, 100, 0, 0.8);
+    z-index: 20;
+    mix-blend-mode: screen; /* 明るく合成 */
+}
+@keyframes anim-blunt {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(0.2); }
+    30% { opacity: 1; transform: translate(-50%, -50%) scale(1.0); } /* 一気に拡大 */
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.3); }
+}
+
+/* ① 突刺 (Pierce): 鋭く貫く閃光に修正 */
+.vfx-pierce {
+    position: absolute;
+    width: 200px;
+    height: 6px; /* 少し太く */
+    /* 両端が透明で中心が鋭い光のライン */
+    background: linear-gradient(90deg, transparent, #fff, #8ff, transparent);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    box-shadow: 0 0 15px #0ff;
+    opacity: 0;
+    animation: anim-pierce 0.15s ease-out forwards; /* より高速に */
+    z-index: 20;
+    mix-blend-mode: screen;
+}
+@keyframes anim-pierce {
+    0% { opacity: 0; width: 50px; transform: translate(-80%, -80%) rotate(45deg); }
+    40% { opacity: 1; width: 250px; transform: translate(-50%, -50%) rotate(45deg); } /* 突き抜ける */
+    100% { opacity: 0; width: 300px; transform: translate(-20%, -20%) rotate(45deg); }
+}
+
+/* --- 魔法属性 --- */
+
+/* ② 火 (Fire): 新規作成 (爆発エフェクト) */
+.vfx-fire {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    /* 中心が黄色、外が赤の炎グラデーション */
+    background: radial-gradient(circle, #ffff00 10%, #ff8800 40%, #ff0000 70%, transparent 100%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+    animation: anim-fire 0.4s ease-out forwards;
+    box-shadow: 0 0 30px #ff4400;
+    z-index: 20;
+    mix-blend-mode: screen; /* 背景と合成して光らせる */
+}
+@keyframes anim-fire {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.0); filter: brightness(2); } /* ピカッと光る */
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); filter: brightness(1); }
+}
+
+/* 水 (Water): 水泡と波紋 */
+.vfx-water {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle, rgba(100,200,255,0.8) 20%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    animation: anim-water 0.5s forwards;
+    z-index: 20;
+}
+@keyframes anim-water {
+    0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0.8; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.5; box-shadow: 0 0 20px #0af; }
+    100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+}
+
+/* 風 (Wind): 竜巻のような回転線 */
+.vfx-wind {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border: 4px solid rgba(200, 255, 200, 0.8);
+    border-radius: 50%;
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: anim-wind 0.4s linear forwards;
+    z-index: 20;
+}
+@keyframes anim-wind {
+    0% { transform: translate(-50%, -50%) rotate(0deg) scale(0.2); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translate(-50%, -50%) rotate(720deg) scale(1.5); opacity: 0; }
+}
+
+/* 土 (Earth): 岩が砕けるイメージ */
+.vfx-earth {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #8b5a2b;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 20px -20px 0 #6b4226, -20px 20px 0 #5a3a20, 20px 20px 0 #8b5a2b, -20px -20px 0 #6b4226;
+    animation: anim-earth 0.4s forwards;
+    z-index: 20;
+}
+@keyframes anim-earth {
+    0% { transform: translate(-50%, -50%) scale(0.1); opacity: 0; }
+    50% { transform: translate(-50%, -50%) scale(1.5); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1.2); opacity: 0; }
+}
+
+/* 光 (Light): 強い閃光 */
+.vfx-light {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, #fff 0%, rgba(255,255,200,0.5) 40%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    animation: anim-light 0.4s forwards;
+    z-index: 20;
+}
+@keyframes anim-light {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 0.5; }
+    50% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1.2); opacity: 0; }
+}
+
+/* 闇 (Dark): 収束する闇 */
+.vfx-dark {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, #000 30%, #400040 60%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+    animation: anim-dark 0.5s forwards;
+    z-index: 20;
+}
+@keyframes anim-dark {
+    0% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+    50% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+    100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
 }
 
 @keyframes anim-slash { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
@@ -1189,4 +1391,28 @@ button[onclick^="close"], button[onclick^="exit"], button[onclick^="return"] {
     margin-bottom: 15px;
     box-shadow: inset 0 0 20px #000;
     image-rendering: pixelated;
+}
+
+/* =========================================
+   UI改修: 戦闘中呪文リストのオーバーレイ化
+   ========================================= */
+
+/* サブメニューの背景を半透明に変更し、戦闘画面が透けるようにする */
+#sub-menu-overlay {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    backdrop-filter: blur(2px); /* すりガラス効果で視認性アップ */
+}
+
+/* リストアイテムの微調整 */
+.shop-item {
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.shop-item:active {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+#temple-scene .screen-box {
+    max-height: 90vh;
+    overflow-y: auto;
 }
