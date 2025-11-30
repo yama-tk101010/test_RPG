@@ -755,23 +755,27 @@ h1, h2 {
     body {
         padding: 0;
         margin: 0;
-        align-items: flex-start;
+        /* align-items: flex-start;  ← 必要に応じて削除またはcenterに変更しても良いですが、100vwなので左寄せでも影響は軽微です */
+        justify-content: flex-start; /* ★追加: 垂直方向を上寄せにする */
+        align-items: center;         /* ★変更: 水平方向は中央揃えで見栄えを調整 */
         background: #000;
         height: 100dvh;
         overflow: hidden;
     }
 
-    /* 2. ゲーム画面のグリッド再定義 */
     #game-container {
         width: 100vw;
         max-width: none;
-        height: 100%;
+        height: auto; /* ★変更: 100%からautoに変更 (中身に合わせて縮める) */
         margin: 0;
         padding: 0;
         gap: 0;
         border: none;
-        grid-template-rows: 32vh auto minmax(0, 1fr) auto;
-        /* ★修正: 左カラムを100pxから130pxに拡大 (マップをさらに大きく) */
+        
+        /* ★変更: 3行目(ログ下)の 1fr を auto にして余白を削除 */
+        /* 旧: grid-template-rows: 32vh auto minmax(0, 1fr) auto; */
+        grid-template-rows: 32vh auto auto auto;
+        
         grid-template-columns: 130px 1fr; 
     }
 
