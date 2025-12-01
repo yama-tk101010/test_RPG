@@ -899,20 +899,20 @@ h1, h2 {
 }
 
 /* =========================================
-   【スマホ版】キャンプメニュー改善設定
+   【スマホ版】キャンプメニュー改善設定 (Ver.2)
    ========================================= */
 @media (max-width: 768px) {
-    /* コンテナ全体: 画面いっぱいに使いつつ余白を詰める */
+    /* --- コンテナ全体: 画面いっぱいに使いつつ余白を詰める --- */
     .camp-container {
         width: 98%;
-        height: 96vh; /* ほぼ全画面 */
-        padding: 8px; /* 余白削減 */
+        height: 98vh; /* ほぼ全画面 */
+        padding: 5px; /* 余白を最小限に */
         border-radius: 8px;
         display: flex;
         flex-direction: column;
     }
 
-    /* ヘッダー: コンパクトに */
+    /* --- ヘッダー: 極力コンパクトに --- */
     .camp-header {
         margin-bottom: 5px;
         padding-bottom: 5px;
@@ -920,98 +920,116 @@ h1, h2 {
         flex-shrink: 0; /* 縮小させない */
     }
     .camp-title-group h2 {
-        font-size: 1.4em; /* 文字サイズ調整 */
+        font-size: 1.2em; /* 文字サイズ微調整 */
     }
     .funds-value {
-        font-size: 1.1em;
+        font-size: 1em;
+    }
+    /* 場所表示バッジなどは小さく */
+    .camp-location-badge {
+        font-size: 0.7em;
+        padding: 1px 6px;
+        margin-top: 2px;
     }
 
-    /* ボディ部: 縦並び配置 */
+    /* --- ボディ部: 縦並び配置 --- */
     .camp-body {
         flex-direction: column;
         gap: 5px;
-        overflow: hidden; /* コンテナからはみ出さない */
-        flex: 1;
+        overflow: hidden; /* 親要素からはみ出さない */
+        flex: 1; /* 残りの高さを占有 */
     }
 
-    /* --- 上部: ステータスエリア (横スクロール) --- */
+    /* --- 上部: ステータスエリア (町メニュー同様のグリッド表示) --- */
     .camp-left-pane {
-        flex: 0 0 auto; /* 高さを固定 */
-        height: auto;
-        max-height: none;
+        flex: 0 0 auto; /* 内容に合わせて高さを決める */
+        max-height: 40vh; /* 画面の4割程度まで */
+        overflow-y: auto; /* 人数が多い場合はスクロール */
         margin-bottom: 5px;
     }
+    
     .pane-title {
-        font-size: 0.7em;
-        margin-bottom: 4px;
         display: none; /* スマホではタイトル省略してスペース確保 */
     }
 
-    /* キャラリストを横並び・横スクロールに */
+    /* ★変更点: 横スクロールではなく、町と同じ「2列グリッド」にする */
     .camp-char-list {
-        flex-direction: row;
-        overflow-x: auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* 2列表示 */
+        gap: 5px;
         padding-bottom: 2px;
-        gap: 6px;
-        /* スクロールバー非表示 (Chrome等) */
-        scrollbar-width: none; 
-    }
-    .camp-char-list::-webkit-scrollbar {
-        display: none;
+        overflow: visible; /* グリッド表示のためスクロール設定解除 */
     }
 
-    /* キャラカードの小型化 */
+    /* カードのスタイルを町メニュー風に調整 */
     .camp-char-card {
-        min-width: 160px; /* 幅を縮小 */
-        width: 160px;
-        padding: 6px;
+        flex-direction: row; /* アイコンと情報を横並び */
+        width: 100%;
+        min-width: 0;
+        padding: 5px;
         margin-right: 0;
-        flex-direction: column; /* 中身を縦積みに変更 */
-        align-items: flex-start;
-        height: auto;
-        background: rgba(255,255,255,0.03);
+        align-items: center;
+        background: rgba(255,255,255,0.05);
     }
     
-    /* カード内のレイアウト調整 */
+    /* アイコンサイズ */
     .camp-char-card img.camp-char-img {
-        width: 32px;
-        height: 32px;
-        margin-bottom: 4px;
-        margin-right: 0;
+        width: 36px;
+        height: 36px;
+        margin-right: 8px;
+        margin-bottom: 0;
     }
+    
     .camp-char-info {
         width: 100%;
+        overflow: hidden; /* はみ出し防止 */
     }
+    
     .camp-char-top {
-        flex-direction: row;
-        justify-content: space-between;
+        margin-bottom: 2px;
+        justify-content: flex-start;
+        gap: 5px;
+    }
+    .camp-char-name { 
+        font-size: 0.85em; 
+        white-space: nowrap; 
+    }
+    .camp-char-job { 
+        font-size: 0.6em; 
+        padding: 0 3px; 
+    }
+    
+    /* HPバーなどは少し細く */
+    .camp-hp-bar-bg {
+        height: 4px;
         margin-bottom: 2px;
     }
-    .camp-char-name { font-size: 0.9em; }
-    .camp-char-job { font-size: 0.6em; padding: 0 3px; }
     
     .camp-char-details {
-        flex-direction: column; /* 詳細を縦に */
-        font-size: 0.65em;
-        line-height: 1.2;
+        font-size: 0.7em;
+        line-height: 1.1;
     }
 
     /* --- 下部: メニューボタンエリア --- */
     .camp-right-pane {
         flex: 1; /* 残りのスペースを全て使う */
-        overflow-y: auto; /* ボタンが多い場合はスクロール */
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
         min-height: 0;
     }
 
     .camp-menu-grid {
+        display: grid;
         grid-template-columns: 1fr 1fr; /* 2列維持 */
-        gap: 6px;
+        gap: 5px;
         padding-bottom: 5px;
+        overflow-y: auto; /* ボタンが多い場合はここがスクロールする */
     }
 
     /* ボタンのスタイル変更: 高さ削減 & 横並びレイアウト */
     .camp-btn {
-        height: 55px !important; /* 高さを低く */
+        height: 50px !important; /* 高さを50pxに固定 */
         flex-direction: row;
         justify-content: flex-start;
         align-items: center;
@@ -1019,7 +1037,7 @@ h1, h2 {
     }
 
     .camp-btn-icon {
-        font-size: 1.4em;
+        font-size: 1.2em;
         margin-bottom: 0;
         margin-right: 8px;
         width: 24px;
@@ -1039,16 +1057,16 @@ h1, h2 {
         line-height: 1;
     }
     
+    /* サブテキスト(英語の説明など)はスペース節約のため非表示にする */
     .camp-btn-sub {
-        font-size: 0.65em;
-        margin-top: 1px;
+        display: none; 
     }
 
     /* 閉じるボタン */
     .camp-close-btn {
         margin-top: 5px;
         padding: 0;
-        height: 40px;
+        height: 40px; /* 少し小さく */
         display: flex;
         align-items: center;
         justify-content: center;
