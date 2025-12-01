@@ -1662,22 +1662,39 @@ function goToDungeon(dId) {
     townLog(`${dungeonData[realId].name}へ入った...`);
 }
 
-// --- 3D描画 ---
+// game.js
+
 function updateDungeonUI() {
-    if(!isBattle) draw3D(); renderMap();
+    if(!isBattle) draw3D(); 
+    renderMap();
     document.getElementById('c-dir').innerText=["北","東","南","西"][playerPos.dir];
-    document.getElementById('c-x').innerText=playerPos.x; document.getElementById('c-y').innerText=playerPos.y;
-    document.getElementById('dungeon-party-status').innerHTML = party.map(p=>{
+    document.getElementById('c-x').innerText=playerPos.x; 
+    document.getElementById('c-y').innerText=playerPos.y;
+
+    // ★修正: mapの第2引数(i)を受け取り、現在ターンのキャラを判定
+    document.getElementById('dungeon-party-status').innerHTML = party.map((p, i) => {
         let clr = p.hp < p.maxHp*0.3 ? '#ff5555' : '#fff'; 
         if(!p.alive) clr = '#888';
+        
         let statusIcon = "";
         if(!p.alive) statusIcon = "🪦";
         else if(p.status === 'poison') statusIcon = "<span style='color:#d0d;'>☠️</span>";
         else if(p.status === 'paralyze') statusIcon = "<span style='color:#dd0;'>⚡</span>";
-        return `<div class="ps-row"><div><span class="job-badge-sm">${jobData[p.jobId].name.charAt(0)}</span><span style="font-size:0.9em; color:#aaa; margin-right:3px;">Lv.${p.level}</span>${p.name} ${statusIcon}</div><div style="color:${clr}">HP:${p.hp}</div></div>`;
+        else if(p.status === 'sleep') statusIcon = "<span style='color:#88f;'>💤</span>"; // 追加しても良い
+        else if(p.status === 'confuse') statusIcon = "<span style='color:#f80;'>💫</span>"; // 追加しても良い
+        else if(p.status === 'stone') statusIcon = "<span style='color:#888;'>🗿</span>"; // 追加しても良い
+
+        // ★追加: 戦闘中 かつ 現在の入力者ならクラスを付与
+        // (実行フェーズ中は highlight しないように activeMemberIndex < party.length もチェックすると自然です)
+        const isMyTurn = isBattle && (i === activeMemberIndex) && (actionQueue.length <= i);
+        const activeClass = isMyTurn ? " active-turn" : "";
+
+        return `<div class="ps-row${activeClass}"><div><span class="job-badge-sm">${jobData[p.jobId].name.charAt(0)}</span><span style="font-size:0.9em; color:#aaa; margin-right:3px;">Lv.${p.level}</span>${p.name} ${statusIcon}</div><div style="color:${clr}">HP:${p.hp}</div></div>`;
     }).join('');
+    
     checkObject();
 }
+
 // 床の奥行きライン定義 (VIEW_METRICSの壁下端座標と一致させることで違和感を消す)
 // d=0:200, d=1:160, d=2:130, d=3:115, それ以降は補間
 const FLOOR_Y = [200, 160, 130, 115, 108, 104, 102];
@@ -3896,6 +3913,9 @@ function startInputPhase(isFirst=false) {
     // 通常のコマンド入力
     p.isDefending = false; 
     document.getElementById('battle-msg').innerText = `▶ ${p.name} のコマンド`; 
+
+    updateDungeonUI();
+
     toggleControls('battle'); 
     
     // 戻るボタン制御

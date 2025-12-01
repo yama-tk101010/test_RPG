@@ -265,6 +265,24 @@ h1, h2 {
 .status-right-col { text-align: right; min-width: 100px; display: flex; flex-direction: column; justify-content: space-between; }
 .location-info { font-family: monospace; color: #aaa; font-size: 0.85em; }
 
+/* style.css に追加 */
+
+/* 戦闘中：行動選択中のキャラ強調 */
+.ps-row.active-turn {
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.25), transparent); /* 背景を金色に薄く光らせる */
+    border-left: 4px solid #ffd700; /* 左端に金色のバーを表示 */
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.1);
+    transition: all 0.2s;
+}
+
+/* 名前部分も強調 */
+.ps-row.active-turn > div:first-child {
+    color: #ffd700; /* 文字色を金色に */
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+    transform: translateX(2px); /* 少し右にずらす演出 */
+}
+
 /* ログ・メッセージ */
 #battle-msg { grid-column: 1 / -1; padding: 8px; font-size: 1em; text-align: center; background: linear-gradient(90deg, #024, #048, #024); border: 2px solid #05a; display: none; margin-top: 5px; border-radius: 5px; font-weight: bold; color: #fff; }
 #log { grid-column: 1 / -1; height: 12vh; min-height: 100px; overflow-y: auto; font-size: 0.85em; background: #111; padding: 8px; border: 1px solid #333; margin-top: 5px; border-radius: 5px; }
