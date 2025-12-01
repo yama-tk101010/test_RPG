@@ -748,15 +748,16 @@ h1, h2 {
 }
 
 /* =========================================
-   スマホ・縦画面対応 (全体修正版)
+   スマホ・縦画面対応 (HP位置調整 & ボタン修正版)
    ========================================= */
 @media (max-width: 768px) {
     /* 1. 全体設定 */
     body {
         padding: 0;
         margin: 0;
-        justify-content: flex-start;
-        align-items: center;
+        /* align-items: flex-start;  ← 必要に応じて削除またはcenterに変更しても良いですが、100vwなので左寄せでも影響は軽微です */
+        justify-content: flex-start; /* ★追加: 垂直方向を上寄せにする */
+        align-items: center;         /* ★変更: 水平方向は中央揃えで見栄えを調整 */
         background: #000;
         height: 100dvh;
         overflow: hidden;
@@ -765,16 +766,20 @@ h1, h2 {
     #game-container {
         width: 100vw;
         max-width: none;
-        height: auto;
+        height: auto; /* ★変更: 100%からautoに変更 (中身に合わせて縮める) */
         margin: 0;
         padding: 0;
         gap: 0;
         border: none;
+        
+        /* ★変更: 3行目(ログ下)の 1fr を auto にして余白を削除 */
+        /* 旧: grid-template-rows: 32vh auto minmax(0, 1fr) auto; */
         grid-template-rows: 32vh auto auto auto;
-        grid-template-columns: 130px 1fr;
+        
+        grid-template-columns: 130px 1fr; 
     }
 
-    /* メインビューなどの既存調整は維持 */
+    /* 3. 3Dビュー */
     #main-area {
         grid-column: 1 / -1;
         width: 100%;
@@ -784,153 +789,272 @@ h1, h2 {
         border-bottom: 2px solid #333;
         box-sizing: border-box;
     }
-    #dungeon-canvas { width: 100%; height: 100%; object-fit: cover; display: block; }
-    #map-wrapper { width: 120px; padding: 4px; }
-    #map-area { width: 110px; height: 110px; gap: 0.5px; }
-    .cell { font-size: 7px; }
+    #dungeon-canvas {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
 
-    /* ステータス・ログ調整 */
+    /* 4. マップエリア */
+    #map-wrapper { 
+        /* ★修正: 幅を90pxから120pxに拡大 */
+        width: 120px; 
+        padding: 4px; 
+    }
+    #map-area { 
+        /* ★修正: マップ本体を80pxから110pxに拡大 */
+        width: 110px; 
+        height: 110px; 
+        gap: 0.5px; 
+    }
+    .cell { font-size: 7px; } /* 文字も少し大きく */
+
+    /* 5. ステータスエリア */
     #status {
         width: 100%;
         padding: 2px 5px;
+        box-sizing: border-box;
         border: none;
         background: transparent;
-        font-size: 0.75em;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        font-size: 0.75em; 
     }
-    .status-right-col { width: 100%; display: flex; justify-content: space-between; margin-top: 2px; }
-    .ps-row { padding: 2px 2px 2px 4px; }
-    .ps-row > div:first-child { max-width: 50%; }
+    .status-right-col {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2px;
+    }
+    /* ② HP位置調整: 右paddingを 25px に設定 */
+    .ps-row { 
+        padding: 2px 2px 2px 4px; 
+    }
+.ps-row > div:first-child {
+        max-width: 50%; /* 名前エリアを半分以下に制限 */
+    }
 
+    /* 6. ログエリア */
     #log {
         grid-column: 1 / -1;
         width: 98%;
         margin: 2px auto;
         padding: 4px;
-        height: 10vh;
+        font-size: 0.8em;
+        background: rgba(0,0,0,0.6);
+        border: 1px solid #333;
+        overflow-y: auto;
+        
+        /* ★修正: 高さをPC版(12vh/min100px)より小さくしてスペースを空ける */
+        height: 10vh;      
         min-height: 60px;
     }
     #battle-msg { margin: 0; padding: 2px; font-size: 0.9em; }
 
+    /* 7. コントローラー */
     .controls {
         width: 100%;
+        /* ★修正: 下のパディングを5pxから20pxに増やしてボタンを上に持ち上げる */
         padding: 2px 2px 20px 2px;
+        /* iPhoneなどのホームバー(Safe Area)対策 */
         padding-bottom: calc(20px + env(safe-area-inset-bottom));
+        
+        box-sizing: border-box;
+        align-self: end;
+        gap: 3px;
+        background: #0a0a0f;
+        z-index: 20;
         border-top: 1px solid #333;
     }
     .btn { height: 42px; font-size: 0.9em; margin: 0; }
-    .battle-pad { grid-template-columns: 1fr 1fr 1fr; }
-    #battle-controls button:last-child { grid-column: 3 !important; }
-
-    /* --- ↓↓↓ キャンプメニュー調整 (ここが重要) ↓↓↓ --- */
-    
-    /* コンテナ: 画面いっぱいに */
-    .camp-container { 
-        width: 100%; 
-        height: 100%; 
-        border-radius: 0; 
-        padding: 10px; 
-        display: flex;
-        flex-direction: column;
-        box-sizing: border-box;
+    .move-pad { gap: 3px; margin-bottom: 0; }
+    #btn-return {
+        /* height: 38px;  ←削除 (他のボタンと同じ42pxになります) */
+        /* margin-top: 2px; ←削除 (グリッドのgapで調整されます) */
+        background: linear-gradient(180deg, #550, #330);
+        border-color: #cc0;
+        color: #ffeb3b;
     }
 
-    /* ヘッダー: 余白を詰める */
-    .camp-header { 
-        margin-bottom: 5px; 
-        padding-bottom: 5px; 
-        flex-shrink: 0;
-    }
-    .camp-title-group h2 { font-size: 1.4em; }
-    .funds-value { font-size: 1.1em; }
-
-    /* ボディ: 縦並びに変更 */
-    .camp-body { 
-        flex-direction: column; 
-        gap: 8px; 
-        flex: 1;
-        overflow: hidden; /* はみ出し防止 */
-    }
-    
-    /* 左ペイン（キャラリスト）: 横スクロール化 */
-    .camp-left-pane { 
-        flex: none; /* 高さを中身に合わせる */
-        width: 100%;
-        height: auto; 
-        max-height: none; 
-    }
-    
-    /* リストを横並びに */
-    .camp-char-list { 
-        flex-direction: row; /* 横並び */
-        overflow-x: auto;    /* 横スクロール有効 */
-        padding-bottom: 5px; 
-        gap: 8px;
-        /* スクロールバーを隠す（任意） */
-        -webkit-overflow-scrolling: touch; 
-    }
-    
-    /* キャラカード: 横幅を固定して並べる */
-    .camp-char-card { 
-        min-width: 220px; /* カード幅確保 */
-        width: 220px;
-        margin-right: 0; 
-        flex-shrink: 0; 
-        padding: 8px;
-    }
-    .camp-char-img { width: 40px; height: 40px; margin-right: 10px; }
-    
-    /* 右ペイン（ボタン）: 残りのスペースを使う */
-    .camp-right-pane { 
-        flex: 1; 
-        display: flex;
-        flex-direction: column;
-        min-height: 0; /* flexアイテムの縮小許可 */
-    }
-    
-    /* タイトル非表示でスペース節約 */
-    .camp-right-pane .pane-title { display: none; }
-    
-    /* ボタングリッド: 3列にして高さを抑える */
-    .camp-menu-grid { 
-        grid-template-columns: repeat(3, 1fr); /* 3列 */
-        gap: 6px; 
+    /* その他 */
+    .screen-box {
+        width: 96%;
+        padding: 10px;
+        max-height: 85vh;
         overflow-y: auto;
-        padding: 2px;
+        justify-content: flex-start;
+    }
+    .town-menu-grid { gap: 8px; }
+    .town-action-btn { height: 60px !important; }
+.battle-pad {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    /* ★重要: 以前の「逃げるボタンを2列分にする」設定を打ち消す */
+    #battle-controls button:last-child {
+        grid-column: 3 !important;
+    }
+}
+
+/* =========================================
+   【スマホ版】キャンプメニュー改善設定
+   ========================================= */
+@media (max-width: 768px) {
+    /* コンテナ全体: 画面いっぱいに使いつつ余白を詰める */
+    .camp-container {
+        width: 98%;
+        height: 96vh; /* ほぼ全画面 */
+        padding: 8px; /* 余白削減 */
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* ヘッダー: コンパクトに */
+    .camp-header {
+        margin-bottom: 5px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #444;
+        flex-shrink: 0; /* 縮小させない */
+    }
+    .camp-title-group h2 {
+        font-size: 1.4em; /* 文字サイズ調整 */
+    }
+    .funds-value {
+        font-size: 1.1em;
+    }
+
+    /* ボディ部: 縦並び配置 */
+    .camp-body {
+        flex-direction: column;
+        gap: 5px;
+        overflow: hidden; /* コンテナからはみ出さない */
+        flex: 1;
+    }
+
+    /* --- 上部: ステータスエリア (横スクロール) --- */
+    .camp-left-pane {
+        flex: 0 0 auto; /* 高さを固定 */
+        height: auto;
+        max-height: none;
+        margin-bottom: 5px;
+    }
+    .pane-title {
+        font-size: 0.7em;
+        margin-bottom: 4px;
+        display: none; /* スマホではタイトル省略してスペース確保 */
+    }
+
+    /* キャラリストを横並び・横スクロールに */
+    .camp-char-list {
+        flex-direction: row;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        gap: 6px;
+        /* スクロールバー非表示 (Chrome等) */
+        scrollbar-width: none; 
+    }
+    .camp-char-list::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* キャラカードの小型化 */
+    .camp-char-card {
+        min-width: 160px; /* 幅を縮小 */
+        width: 160px;
+        padding: 6px;
+        margin-right: 0;
+        flex-direction: column; /* 中身を縦積みに変更 */
+        align-items: flex-start;
+        height: auto;
+        background: rgba(255,255,255,0.03);
     }
     
-    /* ボタン個別の調整: 縦並びアイコンに戻しコンパクトに */
-    .camp-btn { 
-        height: auto;
-        min-height: 70px;
-        flex-direction: column; 
-        justify-content: center; 
-        padding: 5px; 
+    /* カード内のレイアウト調整 */
+    .camp-char-card img.camp-char-img {
+        width: 32px;
+        height: 32px;
+        margin-bottom: 4px;
+        margin-right: 0;
     }
-    .camp-btn-icon { 
-        margin-bottom: 2px; 
-        margin-right: 0; 
-        font-size: 1.6em; 
+    .camp-char-info {
+        width: 100%;
     }
-    .camp-btn div { text-align: center; }
-    .camp-btn-label { font-size: 0.8em; }
-    .camp-btn-sub { display: none; } /* サブテキストは隠してスッキリさせる */
+    .camp-char-top {
+        flex-direction: row;
+        justify-content: space-between;
+        margin-bottom: 2px;
+    }
+    .camp-char-name { font-size: 0.9em; }
+    .camp-char-job { font-size: 0.6em; padding: 0 3px; }
+    
+    .camp-char-details {
+        flex-direction: column; /* 詳細を縦に */
+        font-size: 0.65em;
+        line-height: 1.2;
+    }
+
+    /* --- 下部: メニューボタンエリア --- */
+    .camp-right-pane {
+        flex: 1; /* 残りのスペースを全て使う */
+        overflow-y: auto; /* ボタンが多い場合はスクロール */
+        min-height: 0;
+    }
+
+    .camp-menu-grid {
+        grid-template-columns: 1fr 1fr; /* 2列維持 */
+        gap: 6px;
+        padding-bottom: 5px;
+    }
+
+    /* ボタンのスタイル変更: 高さ削減 & 横並びレイアウト */
+    .camp-btn {
+        height: 55px !important; /* 高さを低く */
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 0 10px;
+    }
+
+    .camp-btn-icon {
+        font-size: 1.4em;
+        margin-bottom: 0;
+        margin-right: 8px;
+        width: 24px;
+        text-align: center;
+    }
+
+    /* テキスト部分 */
+    .camp-btn div {
+        text-align: left;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .camp-btn-label {
+        font-size: 0.9em;
+        line-height: 1;
+    }
+    
+    .camp-btn-sub {
+        font-size: 0.65em;
+        margin-top: 1px;
+    }
 
     /* 閉じるボタン */
     .camp-close-btn {
-        margin-top: 8px;
-        padding: 10px;
-        flex-shrink: 0;
-        /* iPhoneのホームバー対策 */
-        margin-bottom: env(safe-area-inset-bottom);
+        margin-top: 5px;
+        padding: 0;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9em;
+        flex-shrink: 0; /* 縮小させない */
     }
-    
-    /* ワールドマップや他の画面調整 */
-    .dungeon-list-grid { grid-template-columns: 1fr; }
-    #world-map-scene .screen-box { padding: 15px; width: 95%; }
-    
-    #job-buttons { grid-template-columns: 1fr 1fr; }
-    .job-detail-grid { grid-template-columns: 1fr; }
-    #spell-controls { max-height: 250px; }
 }
 /* =========================================
    全体デザイン・リファイン (All UI Overhaul)
@@ -1319,6 +1443,15 @@ button[onclick^="close"], button[onclick^="exit"], button[onclick^="return"] {
     font-weight: bold;
 }
 
+/* スマホ対応：ジョブボタンを2列にする */
+@media (max-width: 768px) {
+    #job-buttons {
+        grid-template-columns: 1fr 1fr; /* 2列に */
+    }
+    .job-detail-grid {
+        grid-template-columns: 1fr; /* 縦積みに */
+    }
+}
 
 /* --- 修正・追加 --- */
 
@@ -1345,6 +1478,12 @@ button[onclick^="close"], button[onclick^="exit"], button[onclick^="return"] {
     touch-action: pan-y;
 }
 
+/* スマホ縦画面時の微調整 */
+@media (max-width: 768px) {
+    #spell-controls {
+        max-height: 250px; /* ★修正: 表示領域を少し広げる */
+    }
+}
 
 
 /* =========================================
@@ -2027,6 +2166,23 @@ button[onclick^="close"], button[onclick^="exit"], button[onclick^="return"] {
 }
 .camp-close-btn:hover { background: #444; color: #fff; }
 
+/* スマホ対応 (縦並び) */
+@media (max-width: 768px) {
+    .camp-container { width: 100%; height: 100%; border-radius: 0; padding: 10px; }
+    .camp-header { margin-bottom: 10px; padding-bottom: 10px; }
+    .camp-body { flex-direction: column; gap: 10px; }
+    
+    .camp-left-pane { flex: none; height: auto; max-height: 40vh; }
+    .camp-status-list { flex-direction: row; overflow-x: auto; padding-bottom: 5px; }
+    .camp-char-card { min-width: 220px; margin-right: 5px; }
+    
+    .camp-right-pane { flex: 1; }
+    .camp-menu-grid { gap: 8px; }
+    .camp-btn { height: 70px; flex-direction: row; justify-content: flex-start; padding: 0 15px; }
+    .camp-btn-icon { margin-bottom: 0; margin-right: 15px; font-size: 1.8em; }
+    .camp-btn div { text-align: left; }
+    .camp-btn-label { font-size: 1em; }
+}
 
 /* =========================================
    ワールドマップUIのリニューアル (World Map Overhaul)
@@ -2175,7 +2331,16 @@ button[onclick^="close"], button[onclick^="exit"], button[onclick^="return"] {
     pointer-events: none;
 }
 
-
+/* スマホ対応：1列にする */
+@media (max-width: 768px) {
+    .dungeon-list-grid {
+        grid-template-columns: 1fr; /* 1列 */
+    }
+    #world-map-scene .screen-box {
+        padding: 15px;
+        width: 95%;
+    }
+}
 /* =========================================
    スキルツリー UI (Refined Compact)
    ========================================= */
@@ -2356,3 +2521,4 @@ button[onclick^="close"], button[onclick^="exit"], button[onclick^="return"] {
     color: #555;
     margin-right: 5px;
 }
+

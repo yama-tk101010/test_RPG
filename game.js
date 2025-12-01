@@ -1046,6 +1046,7 @@ let enemies = [];
 let autoMoveTimer = null;
 
 let isBattle = false, activeMemberIndex = 0, actionQueue = [], ctx = null, battleSpellMode = null, menuReturnTo = 'town', templeTargetIndex = -1, selectedJobId = "", bonusPoints = 0, tempStatAlloc = {};
+
 let clearedDungeons = [];
 
 // --- 初期化・共通関数 ---
@@ -1479,9 +1480,11 @@ function returnToTown(force=false) {
     document.getElementById('dungeon-scene').style.display = 'none'; document.getElementById('town-scene').style.display = 'block';
     updateTownStatus(); if(!force) townLog("町へ戻った。");
 }
+// game.js の openWorldMap 関数を書き換え
+
 function openWorldMap() { 
     // 最新のクリア状況を取得するなどの処理があればここに記述
-     clearedDungeons = [1,2,3]; // デバッグ用（必要に応じて解除）
+    // clearedDungeons = [1,2,3,4,5]; // デバッグ用（必要に応じて解除）
 
     document.getElementById('town-scene').style.display = 'none'; 
     document.getElementById('world-map-scene').style.display = 'flex'; 
@@ -4845,6 +4848,7 @@ function endBattle() {
     updateDungeonUI();
     toggleControls('move');
 }
+
 function gameOver() { log("全滅しました..."); setTimeout(()=>{ isBattle=false; endBattle(); returnToTown(true); party.forEach(p=>{p.hp=1;p.alive=true;p.status='normal';}); partyGold = Math.floor(partyGold/2); townLog("全滅した... 所持金が半分になった。"); updateTownStatus(); },2000); }
 function gameClear() {
     // 今回クリアしたダンジョンIDをリストに追加（重複チェック）
