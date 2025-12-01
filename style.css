@@ -2475,14 +2475,53 @@ button[onclick^="close"], button[onclick^="exit"], button[onclick^="return"] {
     pointer-events: none;
 }
 
-/* スマホ対応：1列にする */
 @media (max-width: 768px) {
+    /* グリッドを2列に変更 */
     .dungeon-list-grid {
-        grid-template-columns: 1fr; /* 1列 */
+        grid-template-columns: 1fr 1fr; 
+        gap: 6px; /* 隙間を少し詰める */
     }
+
+    /* ワールドマップ画面の余白を少し詰める */
     #world-map-scene .screen-box {
-        padding: 15px;
-        width: 95%;
+        padding: 10px;
+        width: 98%;
+    }
+
+    /* ボタン自体のサイズダウン */
+    .dungeon-card-btn {
+        height: 55px !important; /* 高さを70px→55pxに縮小 */
+        padding: 4px 6px !important; /* 内側の余白を削減 */
+    }
+
+    /* ダンジョン名の文字サイズ調整 */
+    .dungeon-label {
+        font-size: 0.75em; /* 文字を小さく */
+        margin-bottom: 0;
+        white-space: nowrap; /* 折り返し防止 */
+        overflow: hidden;
+        text-overflow: ellipsis; /* 長い名前は...で省略 */
+        max-width: 80px; /* 横幅制限 */
+    }
+
+    /* 「Area 1」などのサブ情報を非表示にしてスッキリさせる */
+    .dungeon-sub-label {
+        display: none; 
+    }
+
+    /* クリア/Newバッジのサイズ調整 */
+    .dungeon-status-badge {
+        font-size: 0.6em;
+        padding: 2px 4px;
+        letter-spacing: 0;
+        transform: scale(0.9); /* 少し縮小 */
+    }
+    
+    /* 背景の薄いアイコンを少し小さく */
+    .dungeon-card-bg-icon {
+        font-size: 2.5em;
+        right: -5px;
+        bottom: -5px;
     }
 }
 /* =========================================
