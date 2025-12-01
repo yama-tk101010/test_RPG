@@ -1049,6 +1049,9 @@ let isBattle = false, activeMemberIndex = 0, actionQueue = [], ctx = null, battl
 
 let clearedDungeons = [];
 
+// ★追加: 戦闘開始直後の入力ロックフラグ
+let isBattleInputBlocked = false;
+
 // --- 初期化・共通関数 ---
 window.onload = function() {
     party.forEach(p => { initCharacter(p); calculateStats(p); p.hp = p.maxHp; });
@@ -1484,7 +1487,7 @@ function returnToTown(force=false) {
 
 function openWorldMap() { 
     // 最新のクリア状況を取得するなどの処理があればここに記述
-    // clearedDungeons = [1,2,3,4,5]; // デバッグ用（必要に応じて解除）
+     clearedDungeons = [1,2,3,4,5]; // デバッグ用（必要に応じて解除）
 
     document.getElementById('town-scene').style.display = 'none'; 
     document.getElementById('world-map-scene').style.display = 'flex'; 
@@ -3865,8 +3868,24 @@ function setupBattle(enemyList) {
     document.getElementById('battle-msg').style.display = 'block'; 
     actionQueue = []; 
     party.forEach(p => { p.isDefending = false; p.buffs = {atk:0, def:0}; }); 
-    activeMemberIndex = 0; 
+    activeMemberIndex = 0;
+
+ 
+    // 1. 入力をロックする
+    isBattleInputBlocked = true;
+    
+    // 2. ボタンエリアにロック用クラスを付与（見た目を半透明に）
+    const battleControls = document.getElementById('battle-controls');
+    battleControls.classList.add('input-locked');
+
+    // 3. 入力フェーズ開始（表示切り替え）
     startInputPhase(true); 
+
+    // 4. 一定時間後にロック解除 (例: 800ミリ秒)
+    setTimeout(() => {
+        isBattleInputBlocked = false;
+        battleControls.classList.remove('input-locked');
+    }, 800); 
 }
 function updateEnemyStatName() {
     const container = document.getElementById('enemy-stat');
@@ -4550,6 +4569,8 @@ function finishTurnAndNext() {
 }
 
 function fight(act) { 
+　　// ★追加: ロック中は入力を受け付けない
+    if (isBattleInputBlocked) return;
     // ★修正2: 連打防止・整合性チェック
     // すでに現在のキャラの行動が決定済みなら、入力を受け付けない
     if (actionQueue.length > activeMemberIndex) return;

@@ -2670,3 +2670,10 @@ button[onclick^="close"], button[onclick^="exit"], button[onclick^="return"] {
     margin-right: 5px;
 }
 
+/* 入力ロック中のスタイル */
+.input-locked {
+    opacity: 0.5;           /* 半透明にする */
+    pointer-events: none;   /* クリック判定自体を無効化（念のため） */
+    filter: grayscale(100%); /* モノクロにして無効感を出す */
+    transition: all 0.2s;
+}
