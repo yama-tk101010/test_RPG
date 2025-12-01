@@ -1356,6 +1356,12 @@ h2 {
 #sub-menu-overlay .screen-box.wide-mode #sub-menu-content {
     max-height: 80vh;  /* 通常の40vh制限を解除して、80vhまでスクロール可能に */
     flex: 1;           /* ウィンドウ内で可能な限り広げる */
+    
+    overflow-x: auto;  /* ★追加: 横スクロールを許可 */
+    overflow-y: auto;  /* 縦スクロールも維持 */
+    
+    /* スマホでのスクロール操作性を向上 */
+    -webkit-overflow-scrolling: touch; 
 }
 /* ステータス画面 (Status) - テクニカルな緑系 */
 #status-scene .screen-box {
@@ -2471,7 +2477,11 @@ button[onclick^="close"], button[onclick^="exit"], button[onclick^="return"] {
     flex-direction: column;
     padding: 15px 5px; /* 上下の余白を少し増やす */
     align-items: flex-start;
-    width: 100%;
+    
+    /* ★修正: スマホで横にはみ出した際にスクロールできるよう、幅を固定せず中身に合わせる */
+    width: max-content; 
+    min-width: 100%; /* 画面より小さいときは全幅を使う */
+    
     box-sizing: border-box;
 }
 
