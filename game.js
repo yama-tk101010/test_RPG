@@ -1045,8 +1045,7 @@ let enemies = [];
 
 let autoMoveTimer = null;
 
-let isBattle = false, activeMemberIndex = 0, actionQueue = [], ctx = null, battleSpellMode = 'spell', menuReturnTo = 'town', templeTargetIndex = -1, selectedJobId = "", bonusPoints = 0, tempStatAlloc = {}; 
-
+let isBattle = false, activeMemberIndex = 0, actionQueue = [], ctx = null, battleSpellMode = null, menuReturnTo = 'town', templeTargetIndex = -1, selectedJobId = "", bonusPoints = 0, tempStatAlloc = {};
 let clearedDungeons = [];
 
 // --- 初期化・共通関数 ---
@@ -4829,6 +4828,8 @@ function getTargetVfxIndex(target) {
 // --- 戦闘終了時の処理 (修正) ---
 function endBattle() {
     isBattle = false;
+    battleSpellMode = null; // ★追加: 戦闘メニュー状態をリセット
+    
     document.querySelectorAll('.dynamic-enemy-container').forEach(e => e.remove());
     document.getElementById('enemy-stat').style.visibility='hidden';
     document.getElementById('battle-msg').style.display='none';
