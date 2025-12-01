@@ -15,6 +15,15 @@ const PHYS = { NONE: 'none', SLASH: 'slash', PIERCE: 'pierce', BLUNT: 'blunt' };
 const PHYS_ICONS = { slash: "⚔️", pierce: "🔱", blunt: "🔨", none: "👊" };
 // ⚔️=斬撃, 🔱=突刺, 🔨=打撃, 👊=素手
 
+// 装備スロットごとの定義データ
+const EQUIP_SLOTS_DEF = {
+    weapon: { label: "Main Hand", name: "武器", icon: "⚔️", color: "#f88" },
+    shield: { label: "Off Hand",  name: "盾",   icon: "🛡️", color: "#88f" },
+    helm:   { label: "Head",      name: "頭",   icon: "🪖", color: "#fa8" },
+    armor:  { label: "Body",      name: "身体", icon: "🧥", color: "#8f8" },
+    acc:    { label: "Accessory", name: "装飾", icon: "💍", color: "#d8f" }
+};
+
 // エレメントIDに対応するVFXクラス名のマッピング
 // ELEM = { NONE:0, FIRE:1, WATER:2, EARTH:3, WIND:4, LIGHT:5, DARK:6 };
 const ELEM_VFX_MAP = ["slash", "fire", "water", "earth", "wind", "light", "dark"];
@@ -632,12 +641,67 @@ const spellData = {
     // --- 物理範囲スキル ---
     sweep: { name:"なぎ払い", type:"phys", element:ELEM.NONE, target:"all", mult:0.7, cost:4, desc:"敵全体を攻撃" },
     spin: { name:"回転斬り", type:"phys", element:ELEM.NONE, target:"all", mult:1.0, cost:8, desc:"敵全体を強く攻撃" },
-    landCrash: { name:"大地砕き", type:"phys", element:ELEM.EARTH, target:"all", mult:1.4, cost:12, desc:"敵全体に土属性攻撃" }
+    landCrash: { name:"大地砕き", type:"phys", element:ELEM.EARTH, target:"all", mult:1.4, cost:12, desc:"敵全体に土属性攻撃" },
+
+    provoke: { name:"挑発", type:"skill_provoke", element:ELEM.NONE, target:"single", cost:5, turns:5, desc:"敵を挑発し、自分を狙わせる(5ターン)" },
+
+    // --- 盗賊スキル (状態異常・素早さ) ---
+    // 火力低め(x1.2~1.4)、状態異常重視
+    stealAtk: { name:"強奪", type:"phys", element:ELEM.NONE, target:"single", mult:1.2, cost:3, desc:"小ダメージ＋金を盗む(未実装)" }, // 金盗みはロジック追加が必要なため一旦攻撃のみ
+    sandThrow: { name:"砂かけ", type:"enfeeble", element:ELEM.EARTH, target:"single", status:STATUS.STUN, rate:0.6, cost:4, desc:"目潰しして敵を気絶させる" },
+    poisonEdge: { name:"ポイズンエッジ", type:"phys", element:ELEM.NONE, target:"single", mult:1.3, cost:5, desc:"毒の刃で攻撃する", effect:"poison", rate:0.8 },
+    assassinDagger: { name:"急所突き", type:"phys", element:ELEM.NONE, target:"single", mult:1.4, cost:8, desc:"確率で即死(未実装のため大麻痺)", effect:"paralyze", rate:0.5 },
+
+    // --- 弓使いスキル (単体超火力) ---
+    // 火力最高峰(x1.8~5.0)
+    powerShot: { name:"パワーショット", type:"phys", element:ELEM.NONE, target:"single", mult:1.8, cost:4, desc:"強力な矢を放つ" },
+    rapidFire: { name:"五月雨撃ち", type:"phys", element:ELEM.NONE, target:"single", mult:2.8, cost:8, desc:"目にも留まらぬ連射攻撃" },
+    snipe: { name:"スナイプ", type:"phys", element:ELEM.NONE, target:"single", mult:3.5, cost:12, desc:"急所を狙い澄ました一撃" },
+    meteorRain: { name:"メテオレイン", type:"phys", element:ELEM.FIRE, target:"all", mult:2.0, cost:20, desc:"炎の矢を雨のように降らせる" }, // 全体技
+    heavenArrow: { name:"天穿つ矢", type:"phys", element:ELEM.LIGHT, target:"single", mult:5.0, cost:25, desc:"天をも穿つ究極の矢" },
+
+    // --- 侍スキル (全体攻撃重視) ---
+    // 火力高め(x1.0~2.5)、範囲攻撃が得意
+    iai: { name:"居合", type:"phys", element:ELEM.NONE, target:"all", mult:0.9, cost:4, desc:"敵全体を素早く斬る" },
+    tsubame: { name:"燕返し", type:"phys", element:ELEM.NONE, target:"single", mult:2.5, cost:6, desc:"回避不能の二連撃" },
+    moonSlash: { name:"残月", type:"phys", element:ELEM.DARK, target:"all", mult:1.5, cost:10, desc:"敵全体を闇の斬撃で払う" },
+    cherryBlossom: { name:"桜花繚乱", type:"phys", element:ELEM.NONE, target:"all", mult:2.2, cost:18, desc:"敵全体を美しく散らす奥義" },
+
+    // --- 忍者スキル (全体術・単体物理・デバフ) ---
+    // 単体物理
+    shuriken: { name:"手裏剣", type:"phys", element:ELEM.NONE, target:"single", mult:1.2, cost:2, desc:"牽制の一撃" },
+    assassinate: { name:"暗殺剣", type:"phys", element:ELEM.DARK, target:"single", mult:3.0, cost:12, desc:"闇に紛れて致命傷を与える" },
+    
+    // デバフ
+    shadowBind: { name:"影縫い", type:"enfeeble", element:ELEM.DARK, target:"single", status:STATUS.PARALYZE, rate:0.7, cost:6, desc:"影を縫い留めて麻痺させる" },
+
+    // 忍術（全体魔法）
+    // ※stat:"int" なので知力依存ダメージとなります
+    katon: { name:"火遁の術", type:"attack", element:ELEM.FIRE, target:"all", power:35, stat:"int", cost:10, desc:"火薬玉で敵全体を攻撃" },
+    suiton: { name:"水遁の術", type:"attack", element:ELEM.WATER, target:"all", power:35, stat:"int", cost:10, desc:"大波で敵全体を攻撃" },
+    doton: { name:"土遁の術", type:"attack", element:ELEM.EARTH, target:"all", power:35, stat:"int", cost:10, desc:"地震を起こして敵全体を攻撃" },
+    futon: { name:"風遁の術", type:"attack", element:ELEM.WIND, target:"all", power:35, stat:"int", cost:10, desc:"カマイタチで敵全体を攻撃" },
+    
+    // --- 賢者用追加スキル (大爆発) ---
+    bigBang: { name:"ビッグバン", type:"attack", element:ELEM.NONE, target:"all", power:120, stat:"int", cost:40, desc:"全てを無に帰す大爆発" }
+
 };
 
+Object.assign(spellData, {
+    // 追加: 土全体
+    quake: { name:"クエイク", type:"attack", element:ELEM.EARTH, target:"all", power:45, stat:"int", cost:12, desc:"敵全体を激震で襲う" },
+    // 追加: 闇全体
+    darkness: { name:"ダークネス", type:"attack", element:ELEM.DARK, target:"all", power:45, stat:"int", cost:12, desc:"敵全体を闇で包み込む" },
+    // 追加: 無属性全体魔法 (メテオは既存)
+    
+    // 盗賊用追加スキル
+    mug: { name:"強奪", type:"phys", element:ELEM.NONE, target:"single", mult:1.2, cost:3, desc:"攻撃してアイテムを盗む(未実装)" },
+});
+
 // --- ★新規ヘルパー関数: 呪文か特技かを判定 ---
+// --- ★修正: 呪文か特技かを判定（provokeを追加） ---
 function isPhysicalSkill(spell) {
-    return spell.type === 'phys';
+    return spell.type === 'phys' || spell.type === 'skill_provoke';
 }
 
 
@@ -645,32 +709,167 @@ const jobData = {
     hero: { 
         name: "勇者", icon: "👑", 
         baseStats: { str:8, int:6, pie:6, vit:8, agi:6, luc:6 }, 
-        learnset: { 1:['slash'], 3:['heal'], 5:['fire'], 8:['buffDef'], 10:['double'], 13:['spin'], 15:['gigaSlash'] }, 
         canEquip: ['sword','spear','heavyShield','lightShield','armor','clothes','helm','hat','gauntlet','gloves','acc'], 
-        desc:"バランス型。物理も魔法もこなす。" 
+        desc:"バランス型。物理・回復・魔法をバランスよく習得可能。" 
     },
     warrior: { 
         name: "戦士", icon: "⚔️", 
         baseStats: { str:10, int:3, pie:3, vit:10, agi:5, luc:5 }, 
-        learnset: { 1:['slash'], 4:['sweep'], 7:['charge'], 10:['double'], 14:['landCrash'], 18:['cross'] }, 
         canEquip: ['sword','axe','mace','spear','heavyShield','lightShield','armor','clothes','helm','hat','gauntlet','gloves','acc'], 
-        desc:"HPと攻撃力が高い前衛の要。" 
+        desc:"前衛の要。強力な物理特技とバフを習得する。" 
     },
     mage: { 
         name: "魔法使い", icon: "🪄", 
         baseStats: { str:4, int:10, pie:5, vit:5, agi:7, luc:6 }, 
-        learnset: { 1:['fire'], 3:['sleep'], 5:['wind'], 8:['earth','escape'], 10:['water'], 12:['inferno'], 15:['meteor'] }, 
         canEquip: ['staff','clothes','hat','gloves','lightShield','acc'], 
-        desc:"強力な攻撃魔法で敵を殲滅する。" 
+        desc:"4属性と闇の魔法を操る。広範囲殲滅が得意。" 
     },
     priest: { 
         name: "僧侶", icon: "✝️", 
         baseStats: { str:5, int:5, pie:10, vit:6, agi:5, luc:6 }, 
-        learnset: { 1:['heal'], 3:['cure'], 5:['buffDef'], 8:['raise'], 10:['healall'], 13:['highHeal'], 16:['fullHeal'] }, 
-        // ★修正: 'spear' を追加しました
         canEquip: ['spear','mace','staff','lightShield','clothes','hat','gloves','acc'], 
-        desc:"回復と支援魔法の要。" 
-    }
+        desc:"回復のエキスパート。光魔法やバフも使える。" 
+    },
+    thief: { 
+        name: "盗賊", icon: "💰", 
+        baseStats: { str:5, int:4, pie:3, vit:5, agi:10, luc:10 }, 
+        canEquip: ['dagger','lightShield','clothes','hat','gloves','acc'], 
+        desc:"状態異常攻撃が得意なトリックスター。" 
+    },
+    archer: { 
+        name: "弓使い", icon: "🏹", 
+        baseStats: { str:9, int:4, pie:4, vit:5, agi:8, luc:8 }, 
+        canEquip: ['bow','clothes','hat','gloves','acc'], 
+        desc:"単体物理火力が高い。様々な矢技を習得する。" 
+    },
+    sage: { 
+        name: "賢者", icon: "📜", 
+        baseStats: { str:4, int:8, pie:8, vit:5, agi:5, luc:5 }, 
+        canEquip: ['staff','lightShield','clothes','hat','gloves','acc'], 
+        desc:"全属性の魔法と回復魔法を極める上級職。" 
+    },
+    samurai: { 
+        name: "侍", icon: "👺", 
+        baseStats: { str:9, int:5, pie:5, vit:7, agi:8, luc:4 }, 
+        canEquip: ['katana','heavyShield','lightShield','armor','helm','gauntlet','acc'], 
+        desc:"強力な刀技と全体攻撃を持つ剣士。" 
+    },
+    ninja: { 
+        name: "忍者", icon: "🥷", 
+        baseStats: { str:7, int:7, pie:3, vit:5, agi:9, luc:6 }, 
+        canEquip: ['dagger','kunai','clothes','hat','gloves','acc'], 
+        desc:"忍術(全体魔法)と暗殺技を操る。" 
+    },
+};
+
+const skillTreeData = {
+    hero: [
+        { id: 'slash', req: null, children: [
+            { id: 'charge', req: 1, children: [
+                { id: 'sweep', req: 1, children: [
+                    { id: 'spin', req: 1 }
+                ]}
+            ]}
+        ]},
+        { id: 'provoke', req: null, children: [
+            { id: 'heal', req: 1, children: [
+                { id: 'healall', req: 1 }
+            ]},
+            { id: 'buffDef', req: 1 }
+        ]},
+        // 勇者の魔法ツリー (4属性コンプで光解禁はロジックで制御)
+        { id: 'fire', req: null },
+        { id: 'water', req: null },
+        { id: 'earth', req: null },
+        { id: 'wind', req: null },
+        // 光魔法 (条件付き表示)
+        { id: 'light', req: 'hero_elem_comp', children: [
+            { id: 'judgment', req: 1 }
+        ]}
+    ],
+    warrior: [
+        { id: 'slash', req: null, children: [
+            { id: 'charge', req: 1, children: [
+                { id: 'double', req: 1, children: [
+                    { id: 'cross', req: 1 }
+                ]}
+            ]},
+            { id: 'sweep', req: 1, children: [
+                { id: 'landCrash', req: 1 }
+            ]}
+        ]},
+        { id: 'buffAtk', req: null, children: [
+            { id: 'buffDef', req: 1 }
+        ]}
+    ],
+    mage: [
+        { id: 'fire', req: null, children: [ { id: 'inferno', req: 1 } ] },
+        { id: 'water', req: null, children: [ { id: 'cocytus', req: 1 } ] },
+        { id: 'earth', req: null, children: [ { id: 'quake', req: 1 } ] },
+        { id: 'wind', req: null, children: [ { id: 'storm', req: 1 } ] },
+        { id: 'dark', req: null, children: [
+            { id: 'darkness', req: 1, children: [ { id: 'meteor', req: 1 } ] },
+            { id: 'sleep', req: 1, children: [ { id: 'panic', req: 1 } ] }
+        ]}
+    ],
+    priest: [
+        { id: 'heal', req: null, children: [
+            { id: 'highHeal', req: 1 },
+            { id: 'healall', req: 1, children: [ { id: 'omegaHeal', req: 1 } ] },
+            { id: 'cure', req: 1, children: [ { id: 'refresh', req: 1 }, { id: 'sanity', req: 1 } ] },
+            { id: 'buffDef', req: 1, children: [ { id: 'buffAtk', req: 1 } ] }
+        ]},
+        { id: 'light', req: null, children: [
+            { id: 'judgment', req: 1 }
+        ]}
+    ],
+    thief: [
+        { id: 'shuriken', req: null, children: [
+            { id: 'poisonEdge', req: 1 },
+            { id: 'sandThrow', req: 1 },
+            { id: 'shadowBind', req: 1 },
+            { id: 'assassinDagger', req: 1 }
+        ]}
+    ],
+    archer: [
+        { id: 'powerShot', req: null, children: [
+            { id: 'rapidFire', req: 1, children: [
+                { id: 'snipe', req: 1, children: [
+                    { id: 'meteorRain', req: 1, children: [
+                        { id: 'heavenArrow', req: 1 }
+                    ]}
+                ]}
+            ]}
+        ]}
+    ],
+    sage: [
+        { id: 'fire', req: null, children: [ { id: 'inferno', req: 1 } ] },
+        { id: 'water', req: null, children: [ { id: 'cocytus', req: 1 } ] },
+        { id: 'earth', req: null, children: [ { id: 'quake', req: 1 } ] },
+        { id: 'wind', req: null, children: [ { id: 'storm', req: 1 } ] },
+        { id: 'dark', req: null, children: [ { id: 'darkness', req: 1 } ] },
+        { id: 'light', req: null, children: [ { id: 'judgment', req: 1 } ] },
+        { id: 'heal', req: null, children: [ { id: 'healall', req: 1 } ] }
+    ],
+    samurai: [
+        { id: 'slash', req: null, children: [
+            { id: 'iai', req: 1, children: [
+                { id: 'tsubame', req: 1, children: [
+                    { id: 'moonSlash', req: 1, children: [
+                        { id: 'cherryBlossom', req: 1 }
+                    ]}
+                ]}
+            ]}
+        ]},
+        { id: 'provoke', req: null }
+    ],
+    ninja: [
+        { id: 'shuriken', req: null, children: [ { id: 'assassinate', req: 1 } ] },
+        { id: 'katon', req: null },
+        { id: 'suiton', req: null },
+        { id: 'futon', req: null },
+        { id: 'doton', req: null }
+    ]
 };
 
 const itemData = {
@@ -759,6 +958,36 @@ const itemData = {
     
     ac03: {name:"アルテマリング", type:"accessory", subType:"acc", power:20, ac:10, price:50000, tier:6},
 
+// --- itemData への追記 ---
+
+    // === 短剣 (Dagger) Tier 1-6 ===
+    w_dg1: {name:"ナイフ", type:"weapon", subType:"dagger", phys: PHYS.SLASH, power:10, price:60, tier:1},
+    w_dg2: {name:"ダガー", type:"weapon", subType:"dagger", phys: PHYS.SLASH, power:16, price:350, tier:2},
+    w_dg3: {name:"アサシンダガー", type:"weapon", subType:"dagger", phys: PHYS.PIERCE, power:24, price:1000, tier:3},
+    w_dg4: {name:"マンゴーシュ", type:"weapon", subType:"dagger", phys: PHYS.SLASH, power:40, price:3000, tier:4},
+    w_dg5: {name:"ソードブレイカー", type:"weapon", subType:"dagger", phys: PHYS.SLASH, power:65, price:8000, tier:5},
+    w_dg6: {name:"ゾーリンシェイプ", type:"weapon", subType:"dagger", phys: PHYS.SLASH, power:95, price:23000, tier:6},
+
+    // === 弓 (Bow) Tier 1-6 ===
+    w_bw1: {name:"ショートボウ", type:"weapon", subType:"bow", phys: PHYS.PIERCE, power:14, price:100, tier:1},
+    w_bw2: {name:"ロングボウ", type:"weapon", subType:"bow", phys: PHYS.PIERCE, power:22, price:500, tier:2},
+    w_bw3: {name:"クロスボウ", type:"weapon", subType:"bow", phys: PHYS.PIERCE, power:34, price:1400, tier:3},
+    w_bw4: {name:"グレートボウ", type:"weapon", subType:"bow", phys: PHYS.PIERCE, power:56, price:4300, tier:4},
+    w_bw5: {name:"エルフィンボウ", type:"weapon", subType:"bow", phys: PHYS.PIERCE, power:85, price:11500, tier:5},
+    w_bw6: {name:"アルテミスの弓", type:"weapon", subType:"bow", phys: PHYS.PIERCE, power:120, price:29000, tier:6},
+
+    // === 刀 (Katana) Tier 3-6 ===
+    w_kt3: {name:"打刀", type:"weapon", subType:"katana", phys: PHYS.SLASH, power:35, price:1600, tier:3},
+    w_kt4: {name:"菊一文字", type:"weapon", subType:"katana", phys: PHYS.SLASH, power:58, price:4500, tier:4},
+    w_kt5: {name:"村雨", type:"weapon", subType:"katana", phys: PHYS.SLASH, power:88, price:12000, tier:5},
+    w_kt6: {name:"正宗", type:"weapon", subType:"katana", phys: PHYS.SLASH, power:125, price:32000, tier:6},
+
+    // === クナイ (Kunai) Tier 3-6 ===
+    w_kn3: {name:"クナイ", type:"weapon", subType:"kunai", phys: PHYS.PIERCE, power:28, price:1200, tier:3},
+    w_kn4: {name:"十字手裏剣", type:"weapon", subType:"kunai", phys: PHYS.SLASH, power:46, price:3600, tier:4},
+    w_kn5: {name:"風魔手裏剣", type:"weapon", subType:"kunai", phys: PHYS.SLASH, power:72, price:9200, tier:5},
+    w_kn6: {name:"影縫い", type:"weapon", subType:"kunai", phys: PHYS.PIERCE, power:102, price:24000, tier:6},
+
     // 消耗品
     i01:{name:"薬草",type:"consumable",effect:"heal",power:30,price:10,desc:"HP30回復"}, 
     i02:{name:"毒消し草",type:"consumable",effect:"curePoison",price:15,desc:"毒を直す"}, 
@@ -769,33 +998,30 @@ const itemData = {
     i07: {name:"金の針", type:"consumable", effect:"cureStone", price:100, desc:"石化を解く"},
     i08: {name:"特薬草", type:"consumable", effect:"heal", power:100, price:80, desc:"HP100回復"},
     i09: {name:"忘却の石", type:"consumable", effect:"respec", price:100, desc:"ステータスを初期化して振り直す"}
+
+
 };
 
-// ダンジョンIDごとのドロップリスト (ID: 1, 10, 20, 30, 40)
-// ダンジョンIDごとのドロップリスト (ID: 1, 10, 20, 30, 40)
+// --- dungeonDropData の更新 ---
 const dungeonDropData = {
-    // 1: 地下迷宮 (Tier 1)
-    1: ['w_sw1','w_ax1','w_mc1','w_st1','w_sp1','a_lt1','h_lt1','s_lt1'], 
+    // 1: 地下迷宮 (Tier 1) - 短剣・弓を追加
+    1: ['w_sw1','w_ax1','w_mc1','w_st1','w_sp1','w_dg1','w_bw1','a_lt1','h_lt1','s_lt1'], 
     
-    // 2: 迷いの森 (Tier 2)
-    // ★追加: s_lt_t2, h_lt_t2
-    2: ['w_sw2','w_ax2','w_mc2','w_st2','w_sp2', 'a_hv_t2', 'a_lt_t2', 's_hv_t2', 'h_hv_t2', 's_lt_t2', 'h_lt_t2'],
+    // 2: 迷いの森 (Tier 2) - 短剣・弓を追加
+    2: ['w_sw2','w_ax2','w_mc2','w_st2','w_sp2','w_dg2','w_bw2', 'a_hv_t2', 'a_lt_t2', 's_hv_t2', 'h_hv_t2', 's_lt_t2', 'h_lt_t2'],
     
-    // 3: 海底洞窟 (Tier 3)
-    // ★追加: s_lt2, h_lt2
-    3: ['w_sw3','w_ax3','w_mc3','w_st3','w_sp3','a_hv2','s_hv2','a_lt2','h_hv2','ac01', 's_lt2', 'h_lt2'], 
+    // 3: 海底洞窟 (Tier 3) - 刀・クナイ・短剣・弓を追加
+    3: ['w_sw3','w_ax3','w_mc3','w_st3','w_sp3','w_dg3','w_bw3','w_kt3','w_kn3','a_hv2','s_hv2','a_lt2','h_hv2','ac01', 's_lt2', 'h_lt2'], 
     
-    // 4: 古代神殿 (Tier 4)
-    // Tier 4はもともと軽装(s_lt_t4, h_lt_t4)が含まれています
-    4: ['w_sw4','w_ax4','w_mc4','w_st4','w_sp4', 'a_hv_t4', 'a_lt_t4', 's_lt_t4', 'h_lt_t4'],
+    // 4: 古代神殿 (Tier 4) - 全種追加
+    4: ['w_sw4','w_ax4','w_mc4','w_st4','w_sp4','w_dg4','w_bw4','w_kt4','w_kn4', 'a_hv_t4', 'a_lt_t4', 's_lt_t4', 'h_lt_t4'],
 
-    // 5: 天空の塔 (Tier 5 + Tier 6最強装備)
-    // ★追加: s_lt3, h_lt3 (Tier 5軽装) と s_lt6, h_lt6 (Tier 6軽装レア)
+    // 5: 天空の塔 (Tier 5 + Tier 6) - 全種追加
     5: [
-        // Tier 5 (標準ドロップ)
-        'w_sw5','w_ax5','w_mc5','w_st5','w_sp5','a_hv3','s_hv3','a_lt3','h_hv3','ac02', 's_lt3', 'h_lt3',
-        // Tier 6 (レア枠として混入)
-        'w_sw6','w_ax6','w_mc6','w_st6','w_sp6','a_hv6','s_hv6','a_lt6','h_hv6','ac03', 's_lt6', 'h_lt6'
+        // Tier 5
+        'w_sw5','w_ax5','w_mc5','w_st5','w_sp5','w_dg5','w_bw5','w_kt5','w_kn5','a_hv3','s_hv3','a_lt3','h_hv3','ac02', 's_lt3', 'h_lt3',
+        // Tier 6 (Rare)
+        'w_sw6','w_ax6','w_mc6','w_st6','w_sp6','w_dg6','w_bw6','w_kt6','w_kn6','a_hv6','s_hv6','a_lt6','h_hv6','ac03', 's_lt6', 'h_lt6'
     ] 
 };
 
@@ -875,11 +1101,35 @@ if (document.getElementById('dungeon-scene').style.display === 'flex') {
 
 };
 
+// --- ヘルパー: ツリー投資状況から呪文リストを更新 ---
+function updateSpellsFromTree(p) {
+    p.spells = {}; // 一旦リセット
+    if (!p.investedSkills) p.investedSkills = {};
+
+    for (let skillId in p.investedSkills) {
+        const pts = p.investedSkills[skillId];
+        if (pts > 0 && spellData[skillId]) {
+            // 基本回数4 + (ポイント-1)*2
+            const maxUses = 4 + (pts - 1) * 2;
+            
+            p.spells[skillId] = {
+                ...spellData[skillId],
+                max: maxUses,
+                current: maxUses // 習得・強化時は全快
+            };
+        }
+    }
+}
+
 function initCharacter(p) {
     const j = jobData[p.jobId];
     p.stats = {...j.baseStats};
-    p.spells = {};
-    learnSpells(p, 1);
+    
+    // スキル関連の初期化
+    p.skillPoints = 10; // Lv1なら1ポイント所持
+    p.investedSkills = {};   // 習得状況 { skillId: points }
+    
+    updateSpellsFromTree(p);
 }
 
 function learnSpells(p, lvl) {
@@ -1231,57 +1481,72 @@ function returnToTown(force=false) {
     updateTownStatus(); if(!force) townLog("町へ戻った。");
 }
 function openWorldMap() { 
-clearedDungeons = [1,2,3,4,5]; //デバッグ
+    // 最新のクリア状況を取得するなどの処理があればここに記述
+     clearedDungeons = [1,2,3]; // デバッグ用（必要に応じて解除）
+
     document.getElementById('town-scene').style.display = 'none'; 
     document.getElementById('world-map-scene').style.display = 'flex'; 
 
     const list = document.getElementById('world-map-list');
+    
+    // クラスを上書きしてグリッドレイアウトを適用
+    list.className = 'dungeon-list-grid'; 
     list.innerHTML = '';
 
-    // ダンジョン定義 (推奨レベルの記載を削除)
-    // unlockId: このダンジョンを出すためにクリアが必要なダンジョンのrealId
+    // ダンジョンリスト定義
+    // styleColor: カードの左線の色
     const dungeons = [
-        {id: 1,  realId: 1, label: "🏰 地下迷宮", style: "", unlockId: 0, pos: {x:50, y:110}},
-        {id: 10, realId: 2, label: "🌲 迷いの森", style: "color:#8f8; border-color:#5f5;", unlockId: 1, pos: {x:100, y:80}},
-        {id: 20, realId: 3, label: "🌊 海底洞窟", style: "color:#88f; border-color:#55f;", unlockId: 2, pos: {x:220, y:120}},
-        {id: 30, realId: 4, label: "🏛️ 古代神殿", style: "color:#fd8; border-color:#da4;", unlockId: 3, pos: {x:250, y:50}},
-        {id: 40, realId: 5, label: "🗼 天空の塔", style: "color:#d8f; border-color:#a4d;", unlockId: 4, pos: {x:150, y:30}}
+        {id: 1,  realId: 1, label: "地下迷宮", icon: "🏰", styleColor: "#aaa", unlockId: 0, pos: {x:50, y:110}},
+        {id: 10, realId: 2, label: "迷いの森", icon: "🌲", styleColor: "#5f5", unlockId: 1, pos: {x:100, y:80}},
+        {id: 20, realId: 3, label: "海底洞窟", icon: "🌊", styleColor: "#55f", unlockId: 2, pos: {x:220, y:120}},
+        {id: 30, realId: 4, label: "古代神殿", icon: "🏛️", styleColor: "#da4", unlockId: 3, pos: {x:250, y:50}},
+        {id: 40, realId: 5, label: "天空の塔", icon: "🗼", styleColor: "#a4d", unlockId: 4, pos: {x:150, y:30}}
     ];
 
-    // 地図の描画を実行
+    // 地図の描画 (既存の関数を使用)
     drawWorldMapVisual(dungeons);
 
     dungeons.forEach(d => {
-        // --- 順次開放ロジック ---
-        // unlockIdが0なら無条件開放
-        // それ以外は、clearedDungeonsにunlockIdが含まれているかチェック
+        // 開放条件チェック
         const isUnlocked = (d.unlockId === 0) || clearedDungeons.includes(d.unlockId);
 
         if (isUnlocked) {
             // クリア済み判定
             const isCleared = clearedDungeons.includes(d.realId);
             
-            // バッジ生成
-            let badge = "";
+            // ダンジョンデータから詳細を取得（推奨レベルなどがあれば表示可能）
+            // const dData = dungeonData[d.realId]; 
+
+            // バッジHTML生成
+            let badgeHtml = "";
+            let borderColor = d.styleColor; // デフォルト色
+
             if(isCleared) {
-                badge = " <span style='color:#ffd700; font-weight:bold; font-size:0.8em; margin-left:5px;'>★Clear</span>";
+                badgeHtml = `<div class="dungeon-status-badge badge-clear">★ CLEAR</div>`;
+                borderColor = "#ffd700"; // クリア済みは金色枠に上書き
             } else {
-                badge = " <span style='color:#f55; font-size:0.8em; margin-left:5px; animation:blink 1s infinite;'>NEW!</span>";
+                badgeHtml = `<div class="dungeon-status-badge badge-new">NEW!</div>`;
             }
 
+            // カードボタン生成
             const btn = document.createElement('button');
-            btn.className = "btn menu-btn";
-            if(d.style) btn.style.cssText = d.style;
+            btn.className = "btn dungeon-card-btn";
+            btn.style.borderLeftColor = borderColor; // アクセントカラー適用
             btn.onclick = () => goToDungeon(d.id);
             
-            // ラベルとバッジを結合
-            btn.innerHTML = d.label + badge;
+            btn.innerHTML = `
+                <div class="dungeon-info-group">
+                    <div class="dungeon-label">${d.icon} ${d.label}</div>
+                    <div class="dungeon-sub-label">Area ${d.realId}</div>
+                </div>
+                ${badgeHtml}
+                <div class="dungeon-card-bg-icon">${d.icon}</div>
+            `;
             
             list.appendChild(btn);
         }
     });
 }
-
 // ★新規追加: ビジュアルマップを描画する関数
 function drawWorldMapVisual(dungeons) {
     const cv = document.getElementById('world-map-canvas');
@@ -2219,7 +2484,7 @@ function buyItem(id) {
         alert("お金が足りません。"); 
     }
 }
-// --- 神殿 (転職・レベルアップ) ---
+// --- openTemple の修正 (ボタン追加) ---
 function openTemple() { 
     document.getElementById('town-scene').style.display='none'; 
     document.getElementById('temple-scene').style.display='block'; 
@@ -2228,17 +2493,228 @@ function openTemple() {
     document.getElementById('job-select-area').style.display='none'; 
     document.getElementById('levelup-area').style.display='none'; 
     
+    // 不具合修正箇所: closeSubMenu() だとキャンプが開いてしまうため、直接非表示にする
+    document.getElementById('sub-menu-overlay').style.display = 'none';
+
     const list = document.getElementById('temple-member-list'); 
     list.innerHTML = party.map((p,i) => { 
-        // ★修正: レベルキャップを20に変更
-        const nextReq = p.level * 50; // 必要経験値計算式
+        const nextReq = p.level * 50; 
         const canLvl = p.exp >= nextReq && p.level < 20; 
-        
         const lvlBadges = canLvl ? `<span class="lvl-up-badge">UP!</span>` : ""; 
         const selectedClass = (i === templeTargetIndex) ? "selected" : ""; 
         return `<div class="temple-card ${selectedClass}" onclick="selectTempleMember(${i})"><img src="${p.img}" class="temple-icon"><div class="temple-card-info"><div class="temple-name">${p.name}</div><div class="temple-meta">Lv.${p.level} ${jobData[p.jobId].name}</div></div>${lvlBadges}</div>`; 
     }).join(''); 
+    
+    const actionsDiv = document.querySelector('.temple-actions');
+    if(actionsDiv) {
+        actionsDiv.innerHTML = `
+            <button class="btn temple-btn" onclick="checkLevelUp()">
+                <div class="main">レベルアップ</div>
+                <div class="sub" id="btn-lvl-sub">EXP確認</div>
+            </button>
+            <button class="btn temple-btn" style="border-color:#fa8; background:linear-gradient(180deg, #421, #210);" onclick="openSkillTree()">
+                <div class="main" style="color:#fd8;">スキル習得</div>
+                <div class="sub">ツリー確認</div>
+            </button>
+            <button class="btn temple-btn" onclick="showJobChange()">
+                <div class="main">転職</div>
+                <div class="sub">Lv1からやり直し</div>
+            </button>
+            <button class="btn temple-btn" style="border-color:#a8f; background:linear-gradient(180deg, #324, #112);" onclick="checkRespec()">
+                <div class="main" style="color:#dcf;">能力再編</div>
+                <div class="sub">忘却の石を使用</div>
+            </button>
+        `;
+    }
 }
+
+// --- スキルツリー画面表示 ---
+function openSkillTree() {
+    if(templeTargetIndex === -1) return alert("キャラクターを選択してください");
+    const p = party[templeTargetIndex];
+    
+    // ★重要: 戻り先を「神殿」に指定する
+    menuReturnTo = 'temple'; 
+    
+    renderSkillMenu(p);
+}
+
+// --- ★改修: スキルメニュー描画 (Final Fix) ---
+function renderSkillMenu(p) {
+    const tree = skillTreeData[p.jobId];
+    if(!tree) {
+        showSubMenu("この職業のスキルデータがありません", "スキルツリー");
+        return;
+    }
+
+    // ヘッダー
+    let html = `
+    <div style="background:rgba(0,0,0,0.5); padding:10px; border-bottom:1px solid #444; margin-bottom:10px; border-radius:4px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-weight:bold; color:#eee;">
+                ${jobData[p.jobId].icon} ${jobData[p.jobId].name}
+            </div>
+            <div style="color:#ffd700; font-weight:bold; font-size:1.1em;">
+                SP: <span style="font-size:1.3em;">${p.skillPoints}</span>
+            </div>
+        </div>
+        <div style="font-size:0.75em; color:#aaa; margin-top:4px;">
+            ※スキルを選んで習得・強化 (消費1pt)
+        </div>
+    </div>
+    <div class="skill-tree-container">
+    `;
+    
+    // ノード描画再帰関数
+    const renderNode = (nodes, depth, parentLines = []) => {
+        let nodeHtml = "";
+        
+        nodes.forEach((node, index) => {
+            const isLast = (index === nodes.length - 1);
+            
+            // 特殊条件チェック
+            if (node.req === 'hero_elem_comp') {
+                const hasFire = (p.investedSkills['fire']||0) > 0;
+                const hasWater = (p.investedSkills['water']||0) > 0;
+                const hasEarth = (p.investedSkills['earth']||0) > 0;
+                const hasWind = (p.investedSkills['wind']||0) > 0;
+                if(!(hasFire && hasWater && hasEarth && hasWind)) return;
+            }
+
+            const currentPts = p.investedSkills[node.id] || 0;
+            const spell = spellData[node.id];
+            const canAfford = (p.skillPoints > 0);
+            
+            const maxUses = 4 + (currentPts > 0 ? (currentPts - 1) * 2 : 0);
+            const nextUses = 4 + ((currentPts + 1) - 1) * 2;
+            const icon = isPhysicalSkill(spell) ? (ELEM_ICONS[spell.element]||"⚔️") : (ELEM_ICONS[spell.element]||"🪄");
+
+            let cardClass = "";
+            let btnHtml = "";
+            let infoHtml = "";
+
+            if (currentPts > 0) {
+                // 習得済み
+                cardClass = "learned";
+                infoHtml = `
+                    <div class="skill-name">
+                        ${spell.name}<span class="skill-level">Lv.${currentPts}</span>
+                    </div>
+                    <div class="skill-meta">${spell.desc}</div>
+                    <div class="skill-meta" style="color:#8ff;">回数: ${maxUses} <span style="color:#aaa;">➡</span> <span style="color:#fff;">${nextUses}</span></div>
+                `;
+                btnHtml = `<button class="btn skill-btn btn-atk" ${canAfford ? '' : 'disabled'} onclick="allocateSkillPoint('${node.id}', '${p.jobId}')">強化</button>`;
+            } else {
+                // 未習得
+                cardClass = "available";
+                infoHtml = `
+                    <div class="skill-name" style="color:#eee;">${spell.name}</div>
+                    <div class="skill-meta">${spell.desc}</div>
+                    <div class="skill-meta" style="color:#aaa;">初期回数: ${nextUses}</div>
+                `;
+                btnHtml = `<button class="btn skill-btn btn-magic" ${canAfford ? '' : 'disabled'} onclick="allocateSkillPoint('${node.id}', '${p.jobId}')">習得</button>`;
+            }
+
+            // HTML構築
+            nodeHtml += `<div class="skill-node-wrapper">`;
+            
+            // 接続線
+            nodeHtml += `<div class="tree-connector-area">`;
+            for (let i = 0; i < depth; i++) {
+                const drawLine = parentLines[i];
+                nodeHtml += `<div class="tree-line-block">${drawLine ? '<div class="tree-line-v"></div>' : ''}</div>`;
+            }
+            if (depth > 0) {
+                nodeHtml += `
+                    <div class="tree-line-block">
+                        <div class="tree-line-v ${isLast ? 'last-child' : ''}"></div>
+                        <div class="tree-line-h"></div>
+                    </div>`;
+            }
+            nodeHtml += `</div>`;
+
+            // カード本体 (余分なdivを削除し、直接配置)
+            nodeHtml += `
+                <div class="skill-card ${cardClass}">
+                    <div class="skill-icon-box">${icon}</div>
+                    <div class="skill-info">
+                        ${infoHtml}
+                    </div>
+                    ${btnHtml}
+                </div>
+            `;
+            nodeHtml += `</div>`;
+
+            // 子ノード
+            if (node.children && node.children.length > 0) {
+                if (currentPts > 0) {
+                    const nextParentLines = [...parentLines, !isLast];
+                    nodeHtml += renderNode(node.children, depth + 1, nextParentLines);
+                } else {
+                    // ロック表示
+                    const nextParentLines = [...parentLines, !isLast];
+                    node.children.forEach((childNode, cIdx) => {
+                        const cIsLast = (cIdx === node.children.length - 1);
+                        const cSpell = spellData[childNode.id];
+                        const cIcon = isPhysicalSkill(cSpell) ? (ELEM_ICONS[cSpell.element]||"⚔️") : (ELEM_ICONS[cSpell.element]||"🪄");
+                        
+                        nodeHtml += `<div class="skill-node-wrapper">`;
+                        nodeHtml += `<div class="tree-connector-area">`;
+                        for (let i = 0; i <= depth; i++) {
+                            const drawLine = (i === depth) ? !isLast : parentLines[i];
+                            nodeHtml += `<div class="tree-line-block">${drawLine ? '<div class="tree-line-v"></div>' : ''}</div>`;
+                        }
+                        nodeHtml += `
+                            <div class="tree-line-block">
+                                <div class="tree-line-v ${cIsLast ? 'last-child' : ''}" style="opacity:0.5;"></div>
+                                <div class="tree-line-h" style="border-style:dashed; opacity:0.5;"></div>
+                            </div>`;
+                        nodeHtml += `</div>`;
+
+                        nodeHtml += `
+                            <div class="skill-card locked">
+                                <div class="skill-icon-box" style="border-color:#333; color:#555;">${cIcon}</div>
+                                <div class="skill-info">
+                                    <div class="skill-name" style="color:#777;">${cSpell.name}</div>
+                                    <div class="skill-meta">🔒 前提: ${spell.name} Lv1</div>
+                                </div>
+                                <div class="lock-icon">🔒</div>
+                            </div>
+                        `;
+                        nodeHtml += `</div>`;
+                    });
+                }
+            }
+        });
+        return nodeHtml;
+    };
+
+    html += renderNode(tree, 0);
+    html += `</div>`;
+
+    showSubMenu(html, `スキル習得: ${p.name}`);
+    document.querySelector('#sub-menu-overlay .screen-box').classList.add('wide-mode');
+}
+// --- ★新規: ポイント割り振り実行 ---
+function allocateSkillPoint(skillId, jobId) {
+    const p = party[templeTargetIndex];
+    if (p.skillPoints <= 0) return alert("ポイントが足りません");
+
+    // 親習得チェックが必要だが、UI側で親未習得なら子ボタンを出さない・無効化しているので
+    // ここでは簡易チェックのみ（不正呼び出し防止）
+    // ※厳密には再帰探索して親チェックすべきですが、UI連動しているので省略します
+
+    p.skillPoints--;
+    if (!p.investedSkills[skillId]) p.investedSkills[skillId] = 0;
+    p.investedSkills[skillId]++;
+    
+    // 呪文リスト更新
+    updateSpellsFromTree(p);
+    
+    // 画面更新
+    renderSkillMenu(p);
+}
+
 function selectTempleMember(idx) { 
     openTemple(); 
     templeTargetIndex = idx; 
@@ -2267,102 +2743,107 @@ function selectTempleMember(idx) {
 // --- ステータス振り直し機能 ---
 
 // 1. 振り直しチェックと開始
+// --- checkRespec の修正 (スキルもリセット) ---
 function checkRespec() {
-    // ターゲットが選択されているか確認
     if(templeTargetIndex === -1) return alert("キャラクターを選択してください");
-    
     const p = party[templeTargetIndex];
     
-    // アイテムを持っているか探す
-    // (消耗品は文字列IDで入っているか、オブジェクトの場合もあるので両方チェック)
     const stoneId = "i09";
-    const stoneIndex = partyInventory.findIndex(item => {
-        if(typeof item === 'string') return item === stoneId;
-        return item.itemId === stoneId;
-    });
+    const stoneIndex = partyInventory.findIndex(item => (typeof item === 'string' ? item : item.itemId) === stoneId);
 
-    if(stoneIndex === -1) {
-        return alert("「忘却の石」を持っていません。\n道具屋で購入してください。");
-    }
+    if(stoneIndex === -1) return alert("「忘却の石」を持っていません。");
+    if(!confirm(`${p.name}の能力を初期化しますか？\n(ステータスとスキルポイントをリセット)`)) return;
 
-    if(!confirm(`${p.name}のステータスを初期化して振り直しますか？\n(忘却の石を1つ消費します)`)) return;
-
-    // --- 実行処理 ---
-    
-    // 1. アイテム消費
+    // 消費
     partyInventory.splice(stoneIndex, 1);
 
-    // 2. ステータスを職業の初期値に戻す
+    // 1. ステータスリセット
     const job = jobData[p.jobId];
-    p.stats = { ...job.baseStats }; // ベース値をコピー
+    p.stats = { ...job.baseStats }; 
+    // ステータスポイント再計算 (Lv-1)*3
+    bonusPoints = (p.level - 1) * 3;
 
-    // 3. ポイントの再計算
-    // Lv1から現在のLvまで、毎回3ポイントもらえたとして計算
-    // (Lv - 1)回アップしているので × 3
-    const totalPoints = (p.level - 1) * 3;
-    bonusPoints = totalPoints;
+    // 2. スキルリセット (★追加)
+    p.skillPoints = p.level; // Lv1初期(1) + (Lv-1)回アップ = Lv分
+    p.investedSkills = {};
+    updateSpellsFromTree(p);
 
-    // 4. 割り振り画面の準備
+    // 画面準備
     tempStatAlloc = {str:0, int:0, pie:0, vit:0, agi:0, luc:0};
-    
-    // UI切り替え
-    document.getElementById('temple-action-area').style.display = 'block'; // エリア表示
+    document.getElementById('temple-action-area').style.display = 'block';
     document.getElementById('job-select-area').style.display = 'none';
     document.getElementById('levelup-area').style.display = 'block';
     
-    // 既存の「成長する」ボタンを「振り直し確定」用に書き換える
     const growBtn = document.querySelector('#levelup-area .btn-magic');
     growBtn.innerText = "✨ 決定する";
-    growBtn.onclick = commitRespec; // 関数を差し替え
+    growBtn.onclick = commitRespec;
 
-    // UI更新
     renderLevelUpStats();
     updateBonusUI();
     
-    alert(`ステータスを初期化しました。\n${totalPoints}ポイントを割り振ってください。`);
+    alert(`初期化完了！\nステータスを振り直し、スキルメニューからスキルを習得してください。`);
 }
 
-// 2. 振り直しの確定処理
 function commitRespec() {
     if(bonusPoints > 0) return alert("ポイントを使い切ってください");
-    
     const p = party[templeTargetIndex];
-
-    // 一時配分を確定値に加算
-    for(let k in tempStatAlloc) {
-        p.stats[k] += tempStatAlloc[k];
-    }
-    
-    // 再計算 (HPなどはstatsから再算出が必要)
+    for(let k in tempStatAlloc) p.stats[k] += tempStatAlloc[k];
     calculateStats(p);
-    p.hp = p.maxHp; // HPも全快させてあげる優しさ
-
-    alert("ステータスの振り直しが完了しました！");
-
-    // 画面を元に戻す
+    p.hp = p.maxHp;
+    
+    alert("ステータス振り直し完了！");
     document.getElementById('levelup-area').style.display = 'none';
     
-    // ボタンの機能を「レベルアップ」に戻しておく
     const growBtn = document.querySelector('#levelup-area .btn-magic');
     growBtn.innerText = "💪 成長する";
     growBtn.onclick = executeLevelUp;
 
-    // リスト更新
     selectTempleMember(templeTargetIndex);
 }
 
 function exitTemple() { document.getElementById('temple-scene').style.display='none'; document.getElementById('town-scene').style.display='block'; updateTownStatus(); }
-function showJobChange() { document.getElementById('job-select-area').style.display='block'; document.getElementById('levelup-area').style.display='none'; const jobs = ['hero','warrior','mage','priest']; document.getElementById('job-buttons').innerHTML = jobs.map(j => { const d = jobData[j]; return `<button class="btn job-card-btn" id="btn-job-${j}" onclick="selectJob('${j}')"><div style="font-size:2em;">${d.icon}</div><div>${d.name}</div></button>`; }).join(''); document.getElementById('job-desc').innerHTML = "<div style='padding:20px; color:#aaa; text-align:center;'>職業アイコンをタップして<br>詳細を確認してください</div>"; selectedJobId = null; }
-function selectJob(jid) { selectedJobId = jid; const d = jobData[jid]; const btns = document.querySelectorAll('.job-card-btn'); btns.forEach(b => b.classList.remove('active-job')); document.getElementById(`btn-job-${jid}`).classList.add('active-job'); const equipTypes = { sword:"剣",spear:"槍", axe:"斧", mace:"鈍器", staff:"杖", heavyShield:"大盾", lightShield:"小盾", armor:"鎧", clothes:"服", helm:"兜", hat:"帽子" }; const equips = d.canEquip.map(e => equipTypes[e]).filter(v=>v).join('・'); const html = `<div class="job-info-panel"><h3 style="margin:0 0 10px 0; color:#ffd700; border-bottom:1px solid #555; padding-bottom:5px;">${d.icon} ${d.name}</h3><p style="font-size:0.9em; line-height:1.4; margin-bottom:10px;">${d.desc}</p><div class="job-detail-grid"><div class="detail-box"><div class="detail-label">基礎ステータス</div><div class="stat-bar-row"><span>腕力:</span> <span class="stat-val">${d.baseStats.str}</span></div><div class="stat-bar-row"><span>知力:</span> <span class="stat-val">${d.baseStats.int}</span></div><div class="stat-bar-row"><span>信仰:</span> <span class="stat-val">${d.baseStats.pie}</span></div><div class="stat-bar-row"><span>体力:</span> <span class="stat-val">${d.baseStats.vit}</span></div></div><div class="detail-box"><div class="detail-label">特徴</div><div style="font-size:0.8em; text-align:left;"><div style="margin-bottom:4px;">🛠️ <b>装備:</b> ${equips}</div></div></div></div></div>`; document.getElementById('job-desc').innerHTML = html; }
+// game.js 内の showJobChange 関数内の jobs 配列定義を修正
+function showJobChange() { 
+    document.getElementById('job-select-area').style.display='block'; 
+    document.getElementById('levelup-area').style.display='none'; 
+    
+    // ★ここを更新: 全職業IDをリストに追加
+    const jobs = ['hero','warrior','mage','priest','thief','archer','sage','samurai','ninja']; 
+    
+    // グリッドレイアウトの微調整（CSSをJSから直接操作して列数を増やすか、折り返しに任せる）
+    const container = document.getElementById('job-buttons');
+    container.style.display = 'grid';
+    // 4列だと入りきらないので、スマホなどでは auto-fill にするか、単に折り返させる
+    // ここではCSS修正なしで対応するため列指定を削除してflex的に振る舞わせるか、
+    // あるいは style.css 側で grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); にするのがベストですが、
+    // JSだけで対応する場合:
+    container.style.gridTemplateColumns = "repeat(3, 1fr)"; // 3列表示に変更して見やすくする
+
+    container.innerHTML = jobs.map(j => { 
+        const d = jobData[j]; 
+        return `<button class="btn job-card-btn" id="btn-job-${j}" onclick="selectJob('${j}')"><div style="font-size:2em;">${d.icon}</div><div>${d.name}</div></button>`; 
+    }).join(''); 
+    
+    document.getElementById('job-desc').innerHTML = "<div style='padding:20px; color:#aaa; text-align:center;'>職業アイコンをタップして<br>詳細を確認してください</div>"; 
+    selectedJobId = null; 
+}
+function selectJob(jid) { selectedJobId = jid; const d = jobData[jid]; const btns = document.querySelectorAll('.job-card-btn'); btns.forEach(b => b.classList.remove('active-job')); document.getElementById(`btn-job-${jid}`).classList.add('active-job'); 
+const equipTypes = { 
+        sword:"剣", spear:"槍", axe:"斧", mace:"鈍器", staff:"杖", 
+        dagger:"短剣", bow:"弓", katana:"刀", kunai:"暗器",
+        heavyShield:"大盾", lightShield:"小盾", armor:"鎧", clothes:"服", helm:"兜", hat:"帽子", acc:"装飾" 
+    };
+const equips = d.canEquip.map(e => equipTypes[e]).filter(v=>v).join('・'); const html = `<div class="job-info-panel"><h3 style="margin:0 0 10px 0; color:#ffd700; border-bottom:1px solid #555; padding-bottom:5px;">${d.icon} ${d.name}</h3><p style="font-size:0.9em; line-height:1.4; margin-bottom:10px;">${d.desc}</p><div class="job-detail-grid"><div class="detail-box"><div class="detail-label">基礎ステータス</div><div class="stat-bar-row"><span>腕力:</span> <span class="stat-val">${d.baseStats.str}</span></div><div class="stat-bar-row"><span>知力:</span> <span class="stat-val">${d.baseStats.int}</span></div><div class="stat-bar-row"><span>信仰:</span> <span class="stat-val">${d.baseStats.pie}</span></div><div class="stat-bar-row"><span>体力:</span> <span class="stat-val">${d.baseStats.vit}</span></div></div><div class="detail-box"><div class="detail-label">特徴</div><div style="font-size:0.8em; text-align:left;"><div style="margin-bottom:4px;">🛠️ <b>装備:</b> ${equips}</div></div></div></div></div>`; document.getElementById('job-desc').innerHTML = html; }
 function executeClassChange() { if(!selectedJobId) return alert("職業を選択してください"); if(!party[templeTargetIndex]) return; const p = party[templeTargetIndex]; if(p.jobId === selectedJobId) return alert("すでにその職業です"); if(!confirm("レベルが1に戻りますがよろしいですか？")) return; p.jobId = selectedJobId; p.level = 1; p.exp = 0; initCharacter(p); calculateStats(p); p.hp = p.maxHp; alert("転職しました！"); selectTempleMember(templeTargetIndex); }
 function checkLevelUp() { 
     const p = party[templeTargetIndex]; 
-    if(p.level >= 20) return alert("レベルは最大です"); // Lvキャップ20
+    if(p.level >= 20) return alert("レベルは最大です");
     
     const req = p.level * 50; 
     if (p.exp >= req) { 
-        bonusPoints = 3; // Lv毎に2ポイント
+        bonusPoints = 3; // ステータス用ポイント(既存仕様)
         
+        // UI切り替え
         tempStatAlloc={str:0,int:0,pie:0,vit:0,agi:0,luc:0}; 
         document.getElementById('job-select-area').style.display='none'; 
         document.getElementById('levelup-area').style.display='block'; 
@@ -2419,22 +2900,26 @@ function updateShopUI() {
         titleHeader.innerText = dungeonShopActive ? "💰 行商人" : "💰 道具屋";
     }
     
-    // ★並び順の定義 (数字が小さい順に表示されます)
+    // game.js 内の updateShopUI 関数内の typeOrder 定義を修正
     const typeOrder = {
         'sword': 1,       // 剣
-        'spear': 2,       // 槍
-        'axe': 3,         // 斧
-        'mace': 4,        // 鈍器
-        'staff': 5,       // 杖
-        'lightShield': 6, // 小盾
-        'heavyShield': 7, // 大盾
-        'hat': 8,         // 帽子
-        'helm': 9,        // 兜
-        'clothes': 10,    // 服
-        'armor': 11,      // 鎧
-        'gauntlet': 12,   // 小手 (もしあれば)
-        'gloves': 13,     // 手袋 (もしあれば)
-        'acc': 14         // 装飾品
+        'dagger': 2,      // ★追加: 短剣
+        'katana': 3,      // ★追加: 刀
+        'spear': 4,       // 槍
+        'axe': 5,         // 斧
+        'mace': 6,        // 鈍器
+        'staff': 7,       // 杖
+        'bow': 8,         // ★追加: 弓
+        'kunai': 9,       // ★追加: クナイ
+        'lightShield': 10,
+        'heavyShield': 11,
+        'hat': 12,
+        'helm': 13,
+        'clothes': 14,
+        'armor': 15,
+        'gauntlet': 16,
+        'gloves': 17,
+        'acc': 18
     };
 
     // itemDataのキー配列を作成し、ルールに従ってソートする
@@ -2492,10 +2977,28 @@ function updateShopUI() {
         list.appendChild(div); 
     } 
 }
-function executeLevelUp() { if(bonusPoints > 0) return alert("ポイントを使い切ってください"); const p = party[templeTargetIndex]; const req = p.level * 50; p.level++; p.exp -= req; for(let k in tempStatAlloc) p.stats[k]+=tempStatAlloc[k]; 
-    for(let k in p.spells) { if(p.spells[k].max < 9) { p.spells[k].max += 1; p.spells[k].current += 1; } }
-    learnSpells(p, p.level);
-    calculateStats(p); p.hp = p.maxHp; alert("レベルアップしました！"); document.getElementById('levelup-area').style.display='none'; selectTempleMember(templeTargetIndex); 
+// --- executeLevelUp の修正 ---
+function executeLevelUp() { 
+    if(bonusPoints > 0) return alert("ポイントを使い切ってください"); 
+    
+    const p = party[templeTargetIndex]; 
+    const req = p.level * 50; 
+    p.level++; 
+    p.exp -= req; 
+    
+    // ステータス反映
+    for(let k in tempStatAlloc) p.stats[k]+=tempStatAlloc[k]; 
+    
+    // ★変更: 自動習得廃止 -> スキルポイント付与
+    p.skillPoints++; // LvUPごとに1ポイント
+    
+    calculateStats(p); 
+    p.hp = p.maxHp; 
+    
+    alert(`レベルアップ！(Lv${p.level})\nスキルポイントを獲得しました(+1)`); 
+    
+    document.getElementById('levelup-area').style.display='none'; 
+    selectTempleMember(templeTargetIndex); // 画面更新
 }
 // game.js の renderLevelUpStats 関数をこれに置き換えてください
 
@@ -2540,27 +3043,161 @@ function renderLevelUpStats() {
 function addStat(k, v) { if(v > 0 && bonusPoints > 0) { tempStatAlloc[k]++; bonusPoints--; } else if (v < 0 && tempStatAlloc[k] > 0) { tempStatAlloc[k]--; bonusPoints++; } renderLevelUpStats(); updateBonusUI(); }
 function updateBonusUI() { document.getElementById('bonus-points').innerText = bonusPoints; }
 
-// --- メニュー系関数 (Camp/Items) ---
-function openCamp(from) { menuReturnTo = from || 'camp'; document.getElementById('btn-camp-check').style.display = (document.getElementById('dungeon-scene').style.display === 'flex') ? 'block' : 'none'; if(menuReturnTo==='dungeon') document.getElementById('move-controls').style.display = 'none'; document.getElementById('camp-overlay').style.display='flex'; }
+// ==========================================
+//  キャンプメニュー (UI改修版)
+// ==========================================
+
+// 既存の openCamp をこの内容で上書きしてください
+function openCamp(from) {
+    menuReturnTo = from || 'camp';
+    
+    // 現在のシーン判定
+    const isDungeon = (document.getElementById('dungeon-scene').style.display === 'flex');
+    
+    // ダンジョン内なら移動コントローラを隠す
+    if(menuReturnTo === 'dungeon') {
+        document.getElementById('move-controls').style.display = 'none';
+    }
+    
+    // 「足元を調べる」ボタンの表示制御 (ダンジョン内でのみ有効に見せる)
+    const checkBtn = document.getElementById('btn-camp-check-new');
+    if(checkBtn) {
+        if(isDungeon) {
+            checkBtn.style.opacity = "1";
+            checkBtn.style.pointerEvents = "auto";
+        } else {
+            checkBtn.style.opacity = "0.5";
+            checkBtn.style.pointerEvents = "none";
+        }
+    }
+
+    // UIの内容を最新化して表示
+    updateCampUI();
+    document.getElementById('camp-overlay').style.display='flex';
+}
+
+// ★新規追加: キャンプUI更新関数
+function updateCampUI() {
+    // 1. 所持金
+    const goldEl = document.getElementById('camp-gold-display');
+    if(goldEl) goldEl.innerText = partyGold;
+
+    // 2. 現在地
+    const locEl = document.getElementById('camp-location');
+    if(locEl) {
+        if(document.getElementById('dungeon-scene').style.display === 'flex') {
+            const dName = dungeonData[currentDungeonId].name;
+            locEl.innerText = `📍 ${dName} B${currentFloor}F`;
+        } else {
+            locEl.innerText = "📍 始まりの町";
+        }
+    }
+
+    // 3. キャラクターリスト生成
+    const listEl = document.getElementById('camp-char-list');
+    if(listEl) {
+        listEl.innerHTML = party.map(p => {
+            // HPバーの色計算
+            const hpPer = Math.max(0, Math.min(100, Math.floor((p.hp / p.maxHp) * 100)));
+            let barColor = '#4f8'; // 緑
+            if (hpPer < 50) barColor = '#fb0'; // 黄
+            if (hpPer < 25) barColor = '#f55'; // 赤
+            if (!p.alive) barColor = '#555';   // 灰
+
+            // 状態異常バッジ
+            let statusBadge = "";
+            if (!p.alive) {
+                statusBadge = `<span style="color:#aaa; background:#333; padding:1px 4px; border-radius:3px; font-size:0.8em; margin-left:5px;">戦闘不能</span>`;
+            } else if (p.status !== 'normal') {
+                const info = STATUS_INFO[p.status];
+                statusBadge = `<span style="color:${info.color}; border:1px solid ${info.color}; padding:0 3px; border-radius:3px; font-size:0.8em; margin-left:5px;">${info.icon}${info.name}</span>`;
+            }
+
+            return `
+            <div class="camp-char-card">
+                <img src="${p.img}" class="camp-char-img">
+                <div class="camp-char-info">
+                    <div class="camp-char-top">
+                        <div class="camp-char-name">${p.name}</div>
+                        <div class="camp-char-job">${jobData[p.jobId].name}</div>
+                    </div>
+                    
+                    <div class="camp-hp-bar-bg">
+                        <div class="camp-hp-bar-fill" style="width:${hpPer}%; background:${barColor};"></div>
+                    </div>
+                    
+                    <div class="camp-char-details">
+                        <span>HP: <span style="color:#fff;">${p.hp}</span>/${p.maxHp}</span>
+                        <span>Lv.${p.level}</span>
+                        ${statusBadge}
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+}
 function closeCamp() { document.getElementById('camp-overlay').style.display='none'; if(document.getElementById('dungeon-scene').style.display === 'flex') { toggleControls('move'); } }
 function checkAreaCamp() { closeCamp(); checkArea(); }
-function openCampSpellMenu() { document.getElementById('camp-overlay').style.display = 'none'; showSubMenu(party.map((p, i) => { const disabled = !p.alive ? "disabled style='color:#888'" : ""; return `<button class="btn" ${disabled} onclick="showCampSpellList(${i})">${p.name}</button>`; }).join(''), "誰が唱える？"); }
-// キャンプで魔法リストを表示する関数
-function showCampSpellList(actorIdx) { 
-    const p = party[actorIdx]; 
-    let html = ""; 
-    for(let key in p.spells) { 
-        const s = p.spells[key]; 
-        // ★修正: 'revive' タイプも表示するように追加
-        if((s.type === 'heal' || s.type === 'util' || s.type === 'revive') && s.max > 0) { 
-            const disabled = s.current <= 0 ? "disabled" : ""; 
-            html += `<button class="btn" ${disabled} onclick="selectCampSpellTarget(${actorIdx}, '${key}')">✨ ${s.name} (${s.current}/${s.max})</button>`; 
-        } 
-    } 
-    if (html === "") html = "<div style='grid-column:1/-1; padding:20px; color:#888;'>使える呪文がない</div>"; 
-    showSubMenu(html, `${p.name}の呪文`); 
+// ★改修: キャラ選択をリッチ表示に
+function openCampSpellMenu() { 
+    document.getElementById('camp-overlay').style.display = 'none'; 
+    
+    const html = party.map((p, i) => { 
+        const disabled = !p.alive ? "disabled" : ""; 
+        const jobName = jobData[p.jobId].name;
+        
+        return `
+        <button class="btn char-select-btn" ${disabled} onclick="showCampSpellList(${i})">
+            <img src="${p.img}" class="char-select-icon">
+            <div class="char-select-info">
+                <div class="char-select-name">
+                    <span>${p.name}</span>
+                    <span class="char-select-job">${jobName}</span>
+                </div>
+                <div class="char-select-status">
+                    HP: <span style="color:${p.hp < p.maxHp * 0.3 ? '#f55' : '#8f8'}">${p.hp}/${p.maxHp}</span>
+                    
+                </div>
+            </div>
+        </button>`; 
+    }).join('');
+
+    showSubMenu(html, "誰が唱える？"); 
 }
-function selectCampSpellTarget(actorIdx, spellKey) { const p = party[actorIdx]; const s = p.spells[spellKey]; if (s.current <= 0) return; if (s.target === 'self' || spellKey === 'escape') { executeCampSpell(actorIdx, null, spellKey); return; } if (s.target === 'all') { executeCampSpell(actorIdx, -1, spellKey); return; } showSubMenu(party.map((t, i) => { const hpColor = t.hp < t.maxHp ? "#8f8" : "#fff"; return `<button class="btn" onclick="executeCampSpell(${actorIdx}, ${i}, '${spellKey}')"><span style="color:${hpColor}">${t.name}</span> (HP:${t.hp}/${t.maxHp})</button>`; }).join(''), "誰にかける？"); }
+// ★改修: 対象選択もリッチ表示に
+function selectCampSpellTarget(actorIdx, spellKey) { 
+    const p = party[actorIdx]; 
+    const s = p.spells[spellKey]; 
+    
+    if (s.current <= 0) return; 
+    
+    // 自分自身への使用
+    if (s.target === 'self' || spellKey === 'escape') { 
+        executeCampSpell(actorIdx, null, spellKey); 
+        return; 
+    } 
+    // 全体魔法
+    if (s.target === 'all') { 
+        executeCampSpell(actorIdx, -1, spellKey); 
+        return; 
+    } 
+    
+    const html = party.map((t, i) => { 
+        const hpColor = t.hp < t.maxHp * 0.3 ? "#f55" : (t.hp < t.maxHp ? "#ffeb3b" : "#8f8"); 
+        const statusText = t.alive ? `HP: <span style="color:${hpColor}">${t.hp}/${t.maxHp}</span>` : `<span style="color:#888">戦闘不能</span>`;
+        
+        return `
+        <button class="btn char-select-btn" onclick="executeCampSpell(${actorIdx}, ${i}, '${spellKey}')">
+            <img src="${t.img}" class="char-select-icon">
+            <div class="char-select-info">
+                <div class="char-select-name">${t.name}</div>
+                <div class="char-select-status">${statusText}</div>
+            </div>
+        </button>`; 
+    }).join('');
+
+    showSubMenu(html, "誰にかける？"); 
+}
 // キャンプで魔法を実行する関数
 function executeCampSpell(actorIdx, targetIdx, spellKey) { 
     const actor = party[actorIdx]; 
@@ -2620,36 +3257,122 @@ function executeCampSpell(actorIdx, targetIdx, spellKey) {
     if (spell.current > 0) showCampSpellList(actorIdx); 
     else openCampSpellMenu(); 
 }
-function openEquipMenu(from) { if(from) menuReturnTo=from; document.getElementById('camp-overlay').style.display='none'; showSubMenu(party.map((p,i) => `<button class="btn" onclick="showEquipChar(${i})">${p.name}</button>`).join(''), "装備変更"); }
+// ★改修: 装備者選択をリッチ表示に
+function openEquipMenu(from) { 
+    if(from) menuReturnTo = from; 
+    document.getElementById('camp-overlay').style.display='none'; 
+    
+    const html = party.map((p, i) => {
+        const jobName = jobData[p.jobId].name;
+        // 攻撃力と防御力を表示して選びやすくする
+        return `
+        <button class="btn char-select-btn" onclick="showEquipChar(${i})">
+            <img src="${p.img}" class="char-select-icon">
+            <div class="char-select-info">
+                <div class="char-select-name">
+                    <span>${p.name}</span>
+                    <span class="char-select-job">${jobName}</span>
+                </div>
+                <div class="char-select-status" style="color:#aaa;">
+                    攻:${p.atk} / 防:${p.def}
+                </div>
+            </div>
+        </button>`; 
+    }).join('');
+
+    showSubMenu(html, "誰の装備？"); 
+}
+// 装備画面の表示 (showEquipChar) の改修版
 function showEquipChar(idx) { 
     templeTargetIndex = idx; 
     const p = party[idx]; 
-    const slots = { weapon:'武器', shield:'盾', armor:'鎧', helm:'兜', acc:'装飾' }; 
-    let html = `<div style="grid-column:1/-1;color:#fff;text-align:center;">${p.name}の装備</div>`; 
     
-    for(let s in slots) { 
-        // p.equips[s] はオブジェクトになった
-        const eq = p.equips[s];
-        let eqName = "なし";
-        if(eq) {
-            eqName = itemData[eq.itemId].name + " " + getBonusString(eq);
+    // 現在のステータス計算（表示用）
+    // ※ベース値 + 装備補正
+    let totalAtk = p.atk; // calculateStats済みであること
+    let totalDef = p.def;
+
+    // ヘッダー部分：キャラ情報
+    let html = `
+    <div class="equip-header">
+        <img src="${p.img}" class="equip-char-img">
+        <div style="flex:1;">
+            <div style="font-weight:bold; font-size:1.1em; color:#ffd700; margin-bottom:4px;">
+                ${p.name} <span style="font-size:0.8em; color:#aaa;">(${jobData[p.jobId].name})</span>
+            </div>
+            <div class="equip-char-stats">
+                <div class="stat-box">攻: <span>${totalAtk}</span></div>
+                <div class="stat-box">防: <span>${totalDef}</span></div>
+            </div>
+        </div>
+    </div>
+    <div class="equip-slots-container">
+    `;
+    
+    // 各スロットのカード生成
+    for(let slotKey in EQUIP_SLOTS_DEF) {
+        const def = EQUIP_SLOTS_DEF[slotKey];
+        const equipObj = p.equips[slotKey];
+        
+        let itemName = "装備なし";
+        let itemStats = "-";
+        let isEmpty = true;
+        let styleClass = "empty";
+        
+        if (equipObj) {
+            const item = itemData[equipObj.itemId];
+            itemName = item.name;
+            isEmpty = false;
+            styleClass = "";
+            
+            // 補正値と追加効果のテキスト生成
+            let statsParts = [];
+            if(item.power) statsParts.push(`攻+${item.power}`);
+            if(item.ac) statsParts.push(`防+${item.ac}`);
+            
+            // ボーナス効果
+            if(equipObj.bonus && Object.keys(equipObj.bonus).length > 0) {
+                statsParts.push(getBonusString(equipObj)); // 既存関数を利用
+            }
+            itemStats = statsParts.join(' ');
         }
-        html += `<button class="btn" onclick="equipSlot('${s}')">${slots[s]}: ${eqName}</button>`; 
-    } 
-    showSubMenu(html, "装備選択"); 
+
+        // カードHTML
+        html += `
+        <div class="equip-slot-card" onclick="equipSlot('${slotKey}')" style="border-left-color:${def.color};">
+            <div class="slot-icon-box" style="color:${isEmpty ? '#555' : def.color};">
+                ${def.icon}
+            </div>
+            <div class="slot-info">
+                <div class="slot-label" style="color:${def.color};">${def.label}</div>
+                <div class="slot-item-name ${styleClass}">${itemName}</div>
+                ${!isEmpty ? `<div class="slot-item-stats">${itemStats}</div>` : ''}
+            </div>
+            <div style="color:#666; font-size:0.8em;">▶</div>
+        </div>
+        `;
+    }
+    
+    html += `</div>`; // container close
+    
+    showSubMenu(html, "装備変更"); 
+
+    document.querySelector('#sub-menu-overlay .screen-box').classList.add('tall-mode');
 }
 function equipSlot(slot) { 
     const p = party[templeTargetIndex]; 
     const job = jobData[p.jobId]; 
-    
-    // インベントリから「装備可能」かつ「スロットが合う」ものを抽出
-    // mapで {item, originalIndex} のペアを作る
+    const slotDef = EQUIP_SLOTS_DEF[slot];
+
+    // インベントリから装備可能な候補を抽出
     const candidates = partyInventory.map((item, index) => ({item, index}))
         .filter(wrapper => {
             const obj = wrapper.item;
             if(typeof obj === 'string') return false; // 消耗品は除外
             
             const itDef = itemData[obj.itemId];
+            
+            // スロットタイプの一致確認
             let typeMatch = false; 
             if(slot==='weapon' && itDef.type==='weapon') typeMatch=true; 
             if(slot==='armor' && itDef.type==='armor') typeMatch=true; 
@@ -2657,13 +3380,25 @@ function equipSlot(slot) {
             if(slot==='helm' && itDef.type==='helm') typeMatch=true; 
             if(slot==='acc' && itDef.type==='accessory') typeMatch=true; 
             
+            // 職業装備可能チェック
             return typeMatch && job.canEquip.includes(itDef.subType); 
         });
 
-    let html = `<button class="btn" onclick="doEquip(-1, '${slot}')">外す</button>`; 
+    let html = `
+    <div style="padding:5px; margin-bottom:10px; border-bottom:1px solid #444; color:#aaa; font-size:0.9em;">
+        ${slotDef.icon} ${slotDef.name} を選択中
+    </div>
+    `;
+
+    // 「外す」ボタン
+    html += `
+    <button class="btn equip-candidate-btn" onclick="doEquip(-1, '${slot}')" style="justify-content:center !important; border-color:#666;">
+        <span style="color:#aaa;">🚫 装備を外す</span>
+    </button>
+    `;
     
     if(candidates.length === 0) {
-        html += `<div style="color:#aaa; padding:10px;">装備できるアイテムがない</div>`;
+        html += `<div style="color:#666; padding:20px; text-align:center;">装備可能なアイテムがありません</div>`;
     } else {
         html += candidates.map(wrapper => {
             const obj = wrapper.item;
@@ -2671,19 +3406,26 @@ function equipSlot(slot) {
             const itDef = itemData[obj.itemId];
             const bonusStr = getBonusString(obj);
             
-            let powerStr = ""; 
-            if(itDef.power) powerStr = `攻${itDef.power}`; 
-            if(itDef.ac) powerStr = `防${itDef.ac}`; 
+            // アイコン取得（武器なら種類別アイコン）
+            const icon = getItemTypeIcon(itDef) || slotDef.icon;
             
-            // ★修正: ボタン内のテキスト配置
-            return `<button class="btn" style="height:auto; min-height:50px; padding:8px; flex-direction:column; align-items:flex-start; line-height:1.4;" onclick="doEquip(${idx}, '${slot}')">
-                <div style="font-weight:bold;">${itDef.name}</div>
-                <div style="font-size:0.85em;">${powerStr} ${bonusStr}</div>
+            let powerStr = ""; 
+            if(itDef.power) powerStr += ` <span style="color:#f88">攻+${itDef.power}</span>`; 
+            if(itDef.ac) powerStr += ` <span style="color:#88f">防+${itDef.ac}</span>`; 
+            
+            return `
+            <button class="btn equip-candidate-btn" onclick="doEquip(${idx}, '${slot}')">
+                <div class="equip-candidate-info">
+                    <div style="font-weight:bold; color:#eee;">${icon} ${itDef.name}</div>
+                    <div class="equip-candidate-stats">${powerStr} ${bonusStr}</div>
+                </div>
+                <div style="font-size:0.8em; color:#ffd700;">装備</div>
             </button>`;
         }).join('');
     }
     
-    showSubMenu(html, "装備選択");
+    showSubMenu(html, "アイテム選択");
+    document.querySelector('#sub-menu-overlay .screen-box').classList.add('tall-mode');
 }
 
 function doEquip(invIndex, slot) { 
@@ -2765,34 +3507,94 @@ function discardItem(index) {
         openItemMenu();
     }
 }
-function selectItemTarget(itemId) { const it = itemData[itemId]; if(it.type !== 'consumable') { alert(`これは${it.name}です。装備メニューから装備してください。`); return; } if(battleSpellMode === 'item') { document.getElementById('sub-menu-overlay').style.display='none'; toggleControls('target'); ['btn-target-0','btn-target-1','btn-target-2','btn-target-3'].forEach((id,i) => { document.getElementById(id).innerText=`${party[i].name}`; document.getElementById(id).onclick = () => executeBattleItem(itemId, i); }); return; } if(it.effect === 'warp') { useItem(itemId, null); return; } showSubMenu(party.map((p,i) => `<button class="btn" onclick="useItem('${itemId}', ${i})">${p.name}</button>`).join(''), "誰に使う？"); }
+// ★改修: アイテム対象選択をリッチ表示に
+function selectItemTarget(itemId) { 
+    const it = itemData[itemId]; 
+    if(it.type !== 'consumable') { 
+        alert(`これは${it.name}です。装備メニューから装備してください。`); 
+        return; 
+    } 
+    
+    // 戦闘中の場合
+    if(battleSpellMode === 'item') { 
+        document.getElementById('sub-menu-overlay').style.display='none'; 
+        toggleControls('target'); 
+        ['btn-target-0','btn-target-1','btn-target-2','btn-target-3'].forEach((id,i) => { 
+            if(party[i]) {
+                document.getElementById(id).innerText = `${party[i].name}`; 
+                document.getElementById(id).onclick = () => executeBattleItem(itemId, i); 
+            } else {
+                document.getElementById(id).style.display = 'none';
+            }
+        }); 
+        return; 
+    } 
+    
+    if(it.effect === 'warp') { useItem(itemId, null); return; } 
+    
+    const html = party.map((p, i) => {
+        const hpColor = p.hp < p.maxHp * 0.3 ? "#f55" : (p.hp < p.maxHp ? "#ffeb3b" : "#8f8");
+        return `
+        <button class="btn char-select-btn" onclick="useItem('${itemId}', ${i})">
+            <img src="${p.img}" class="char-select-icon">
+            <div class="char-select-info">
+                <div class="char-select-name">${p.name}</div>
+                <div class="char-select-status">
+                    HP: <span style="color:${hpColor}">${p.hp}/${p.maxHp}</span>
+                    <span style="font-size:0.9em; margin-left:5px;">${p.status !== 'normal' ? '状態:'+STATUS_INFO[p.status].name : ''}</span>
+                </div>
+            </div>
+        </button>`;
+    }).join('');
+
+    showSubMenu(html, "誰に使う？"); 
+}
 function useItem(itemId, targetIdx) { const item = itemData[itemId]; const invIdx = partyInventory.indexOf(itemId); if(invIdx > -1) partyInventory.splice(invIdx, 1); if(item.effect === 'warp') { alert("光に包まれた！"); closeSubMenu(); closeCamp(); returnToTown(true); return; } const t = party[targetIdx]; if(item.effect === 'heal') { t.hp += item.power; if(t.hp > t.maxHp) t.hp = t.maxHp; alert(`${t.name}は回復した`); } else if(item.effect === 'curePoison') { if(t.status === 'poison') { t.status='normal'; alert("毒が消えた"); } else alert("効果がなかった"); } else if(item.effect === 'curePara') { if(t.status === 'paralyze') { t.status='normal'; alert("麻痺が治った"); } else alert("効果がなかった"); } if(document.getElementById('dungeon-scene').style.display === 'flex') updateDungeonUI(); else updateTownStatus(); openItemMenu(); }
-function showSubMenu(html, title) { document.getElementById('sub-menu-overlay').style.display='flex'; document.getElementById('sub-menu-title').innerText = title; document.getElementById('sub-menu-content').innerHTML = html; }
+// game.js の showSubMenu 関数を探して、以下のように修正（tall-modeのリセットを追加）してください
+function showSubMenu(html, title) { 
+    // ★追加: 画面を開く前に、拡張クラスをリセットする
+    const box = document.querySelector('#sub-menu-overlay .screen-box');
+    if(box) {
+        box.classList.remove('wide-mode'); // 既存
+        box.classList.remove('tall-mode'); // ★新規追加
+    }
+
+    document.getElementById('sub-menu-overlay').style.display='flex'; 
+    document.getElementById('sub-menu-title').innerText = title; 
+    document.getElementById('sub-menu-content').innerHTML = html; 
+}
 // ★既存関数を修正: 閉じるボタンの挙動に 'spell' モードを追加
 function closeSubMenu() { 
     document.getElementById('sub-menu-overlay').style.display='none'; 
     
-    // 戦闘中のアイテム選択モードからの戻り
+    // 戦闘中のアイテム選択からの戻り
     if(battleSpellMode === 'item') { 
         toggleControls('battle'); 
         battleSpellMode = null; 
         return;
     }
     
-    // ★追加: 戦闘中の呪文選択モードからの戻り
+    // 戦闘中の呪文選択からの戻り
     if(battleSpellMode === 'spell') {
         toggleControls('battle');
         battleSpellMode = null;
         return;
     }
 
-    // ダンジョン内メニューからの戻り
+    // ダンジョン内での直接装備変更などからの戻り
     if(menuReturnTo === 'direct') {
         toggleControls('move'); 
         return;
     }
 
-    // 通常キャンプメニューへの戻り
+    // ★ここが重要: 神殿メニューへの戻り
+    // これがないと、神殿に戻ろうとしたときにキャンプが開いてしまいます
+    if(menuReturnTo === 'temple') {
+        // 神殿画面は背景に表示されたままなので、オーバーレイを消すだけで何もしない
+        return;
+    }
+
+    // 上記以外（通常時）はキャンプメニューに戻る
     document.getElementById('camp-overlay').style.display='flex'; 
 }
 // --- ★修正: ステータス画面での表示 ---
@@ -3185,12 +3987,29 @@ function decideEnemyAction(enemy) {
         }
     }
 
-    // ターゲット決定（ランダム）
-    // 生存しているパーティメンバーから選ぶ
-    const livingMembers = party.filter(p => p.alive && p.status !== STATUS.STONE); // 石化もターゲット外にする？
-    if(livingMembers.length === 0) return { type: 'wait' };
-    
-    const targetIdx = party.indexOf(livingMembers[Math.floor(Math.random() * livingMembers.length)]);
+    // ターゲット決定
+    let targetIdx = -1;
+
+    // ★追加: 挑発(Provoke)状態のチェック
+    // provokedプロパティがあり、かつ挑発した相手が生きていれば強制ターゲット
+    if (enemy.provoked && enemy.provoked.turns > 0) {
+        const provokerIdx = enemy.provoked.targetIndex;
+        const provoker = party[provokerIdx];
+        
+        // 挑発者が存在し、生存しており、かつ石化していない場合のみ有効
+        if (provoker && provoker.alive && provoker.status !== STATUS.STONE) {
+            targetIdx = provokerIdx;
+        }
+    }
+
+    // ターゲットがまだ決まっていない（挑発されていない、または挑発者が死んでいる）場合はランダム
+    if (targetIdx === -1) {
+        // 生存しているパーティメンバーから選ぶ
+        const livingMembers = party.filter(p => p.alive && p.status !== STATUS.STONE); 
+        if(livingMembers.length === 0) return { type: 'wait' };
+        
+        targetIdx = party.indexOf(livingMembers[Math.floor(Math.random() * livingMembers.length)]);
+    }
 
     return { type, spellKey, targetIndex: targetIdx };
 }
@@ -3211,14 +4030,11 @@ function processTurnQueue() {
     
     // 行動主体の取得
     let actor = null;
-    let actorType = ""; // 'party' or 'enemy'
 
     if(act.isEnemy) {
         actor = enemies[act.enemyIndex];
-        actorType = 'enemy';
     } else {
         actor = party[act.actorIndex];
-        actorType = 'party';
     }
 
     // 死んでいる、または石化ならスキップ
@@ -3231,7 +4047,6 @@ function processTurnQueue() {
     
     // 麻痺: 一定確率で動けない
     if(actor.status === STATUS.PARALYZE) {
-        // 麻痺は完全行動不能とする(強い)
         log(`${actor.name}は麻痺して動けない！`);
         updateDungeonUI();
         setTimeout(processTurnQueue, 800);
@@ -3241,7 +4056,6 @@ function processTurnQueue() {
     // 睡眠
     if(actor.status === STATUS.SLEEP) {
         log(`${actor.name}は眠っている...`);
-        // 睡眠中は防御力低下などのフラグを立てても良い
         updateDungeonUI();
         setTimeout(processTurnQueue, 800);
         return;
@@ -3258,8 +4072,6 @@ function processTurnQueue() {
     // 混乱 (行動内容を書き換え)
     if(actor.status === STATUS.CONFUSE) {
         log(`${actor.name}は混乱している！`);
-        // ランダムな対象に通常攻撃
-        // ターゲット候補: 生きている全員（敵＋味方）
         const allTargets = [...party, ...enemies].filter(c => c.hp > 0 && c.status !== STATUS.DEAD);
         const randomTarget = allTargets[Math.floor(Math.random() * allTargets.length)];
         
@@ -3273,7 +4085,18 @@ function processTurnQueue() {
     }
 
     // --- 通常行動実行 ---
-    // ターゲットの再確認 (死んでいる場合など)
+    
+    // ★追加: 敵の行動時、挑発(Provoke)状態ならターゲットを強制変更
+    // (ターン開始時の決定よりも、実行直前の挑発状態を優先する)
+    if (act.isEnemy && actor.provoked && actor.provoked.turns > 0) {
+        const provoker = party[actor.provoked.targetIndex];
+        // 挑発者が生存しており、石化していなければターゲットを上書き
+        if (provoker && provoker.alive && provoker.status !== STATUS.STONE) {
+            act.targetIndex = actor.provoked.targetIndex;
+        }
+    }
+
+    // ターゲットの再確認・取得
     let target = null;
     if(act.targetIndex !== undefined && act.targetIndex !== -1) {
         if(act.isEnemy) {
@@ -3281,18 +4104,19 @@ function processTurnQueue() {
              target = party[act.targetIndex];
         } else {
              // 味方の行動の場合、ターゲットは敵
-             if(act.type !== 'heal' && act.type !== 'buff') { // 攻撃系
+             // (回復・補助系以外は敵をターゲットにする)
+             if(act.type !== 'heal' && act.type !== 'buff' && act.type !== 'revive' && act.type !== 'cure') { 
                  target = enemies[act.targetIndex];
-             } else { // 回復・補助系
+             } else { 
                  target = party[act.targetIndex];
              }
         }
     }
 
     // ターゲット生存チェック (死んでたら生きている別の敵/味方を狙う)
-    if(target && target.hp <= 0) {
+    if(!target || target.hp <= 0) {
         if(act.isEnemy) target = getRandomTarget(party); // 味方からランダム
-        else if(act.type==='attack' || act.type==='spell') target = getRandomTarget(enemies); // 敵からランダム
+        else if(act.type==='attack' || act.type==='spell' || act.type==='phys' || act.type==='skill_provoke') target = getRandomTarget(enemies); // 敵からランダム
     }
 
     // 行動実行
@@ -3391,7 +4215,30 @@ function executeAction({ type, actor, target, spellKey, itemId, isConfused }) {
                     else if(spell.effect === 'confuse' && t.status === STATUS.CONFUSE) { t.status = STATUS.NORMAL; log(`${t.name}は正気に戻った。`, isEnemyAction); }
                 }
             });
-        } 
+        }
+        // ★追加: (New) 挑発スキル処理
+        else if (spell.type === 'skill_provoke') {
+            // ターゲット（敵）に対して挑発状態を付与
+            const tIdx = getTargetVfxIndex(target);
+            if (tIdx !== null) playVfx('dark', tIdx); // エフェクト（とりあえず闇っぽく）
+
+            if (target && target.hp > 0) {
+                // 挑発者（自分）がパーティの何番目かを取得
+                const provokerIdx = party.indexOf(actor);
+                
+                if (provokerIdx !== -1) {
+                    target.provoked = {
+                        targetIndex: provokerIdx,
+                        turns: spell.turns
+                    };
+                    log(`${target.name}は激怒した！(${actor.name}を狙っている)`, isEnemyAction);
+                } else {
+                    log("しかし効果がなかった。");
+                }
+            } else {
+                log("しかし効果がなかった。");
+            }
+        }
         // (B) 弱体魔法
         else if (spell.type === 'enfeeble') { 
              playVfx('dark');
@@ -3639,6 +4486,16 @@ function endTurnProcessing() {
         if(u.buffs) {
             if(u.buffs.atk > 0) u.buffs.atk--;
             if(u.buffs.def > 0) u.buffs.def--;
+        }
+
+        // ★追加: 挑発(Provoked)状態の経過 (敵のみ)
+        if (u.isEnemy && u.provoked) {
+            u.provoked.turns--;
+            if (u.provoked.turns <= 0) {
+                delete u.provoked;
+                // 必要ならログを表示
+                // msgList.push(`${u.name}の怒りが静まった。`); 
+            }
         }
     });
 
@@ -4258,70 +5115,66 @@ unlockedDoors: unlockedDoors,
 
 function loadGame() {
     const json = localStorage.getItem(SAVE_KEY);
-    if (!json) {
-        alert("セーブデータが見つかりません。");
-        return;
-    }
-
-    if (!confirm("続きから始めますか？\n(現在の進行状況は上書きされます)")) return;
+    if (!json) { alert("セーブデータが見つかりません。"); return; }
+    if (!confirm("続きから始めますか？")) return;
 
     try {
         const data = JSON.parse(json);
-
-        // データを復元
         party = data.party;
         partyInventory = data.inventory;
         partyGold = data.gold;
         openedChests = data.openedChests;
         visitedMaps = data.visitedMaps;
         clearedDungeons = data.clearedDungeons || [];
-        
         currentDungeonId = data.currentDungeonId;
         currentFloor = data.currentFloor;
         playerPos = data.playerPos;
-unlockedDoors = data.unlockedDoors || {};
+        unlockedDoors = data.unlockedDoors || {};
 
-        // UIやステータス計算の更新
+        // データの整合性チェックと更新
         party.forEach(p => {
-            // オブジェクトのメソッドなどはJSONで消えるため、念のため再計算などを通す
-            // (このゲームの作りならデータ復元だけで概ね動きます)
-            calculateStats(p); 
+            calculateStats(p);
+            
+            // ★旧データ対応: skillPointsがない場合はレベル分付与して初期化
+            if (p.skillPoints === undefined) {
+                p.skillPoints = p.level;
+                p.investedSkills = {};
+                // ※旧データの p.spells はツリー形式ではないため、一旦リセットされます
+                // プレイヤーは「忘却の石」を使ったのと同じ状態で再開することになります
+                updateSpellsFromTree(p);
+            } else {
+                // セーブデータの spells はオブジェクトのメソッドが消えているため、再構築推奨
+                // ただし current (残り回数) は維持したい
+                const savedSpells = p.spells;
+                updateSpellsFromTree(p);
+                // 残り回数を復元
+                for(let k in p.spells) {
+                    if(savedSpells[k]) p.spells[k].current = savedSpells[k].current;
+                }
+            }
         });
 
-        // 画面切り替え処理
+        // 画面復帰処理 (既存のまま)
         document.getElementById('prologue-scene').style.display = 'none';
         document.getElementById('camp-overlay').style.display = 'none';
-
         if (data.scene === 'dungeon') {
-            // ダンジョンへ復帰
             document.getElementById('town-scene').style.display = 'none';
             document.getElementById('dungeon-scene').style.display = 'flex';
-            
-            // マップデータの再ロード
             currentMapData = maps[currentDungeonId][currentFloor];
             const cv = document.getElementById('dungeon-canvas');
             if(cv) ctx = cv.getContext('2d');
-
-            // UI更新
             const dName = dungeonData[currentDungeonId].name;
             document.getElementById('floor-display').innerText = `${dName} B${currentFloor}F`;
-            
-            checkObject();
-            updatePlayerVision();
-            updateDungeonUI();
-            toggleControls('move');
-            log("ゲームをロードしました。");
+            checkObject(); updatePlayerVision(); updateDungeonUI(); toggleControls('move');
         } else {
-            // 町へ復帰
             document.getElementById('dungeon-scene').style.display = 'none';
             document.getElementById('town-scene').style.display = 'block';
             updateTownStatus();
-            townLog("ゲームをロードしました。");
         }
+        townLog("ゲームをロードしました。");
 
     } catch (e) {
-        alert("セーブデータの読み込みに失敗しました。データが壊れている可能性があります。");
-        console.error(e);
+        alert("ロード失敗"); console.error(e);
     }
 }
 

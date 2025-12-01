@@ -1047,11 +1047,37 @@ h2 {
 #temple-scene h2 { color: #aaf; text-shadow: 0 0 10px #00f; border-bottom-color: #44a; }
 
 /* キャンプ・メニュー (Camp) - ニュートラルグレー */
-#camp-overlay .screen-box, #sub-menu-overlay .screen-box {
+#camp-overlay .screen-box {
     border-color: #666;
-    max-width: 400px; /* 少し幅を狭めてメニューっぽく */
+    max-width: 400px; /* キャンプメニューは狭いまま維持 */
 }
 
+/* サブメニュー（基本設定：狭く戻す） */
+#sub-menu-overlay .screen-box {
+    border-color: #666;
+    max-width: 400px; /* ★基本はコンパクトに */
+    width: 95%;
+    transition: max-width 0.2s ease; /* 幅が変わる際のアニメーション */
+}
+
+/* ★修正: スキルツリー用のワイド＆トール設定クラス */
+#sub-menu-overlay .screen-box.wide-mode {
+    max-width: 600px;  /* 横幅: 神殿と同じくらい */
+    width: 95%;
+    
+    /* 縦幅の拡張設定 */
+    max-height: 90vh;  /* 画面の高さの90%まで広げる */
+    height: auto;      /* 中身に合わせて伸縮（最大90vhまで） */
+    
+    display: flex;     /* 内部レイアウト調整 */
+    flex-direction: column;
+}
+
+/* ★追加: ワイドモード時は、中のリスト部分も縦に限界まで広げる */
+#sub-menu-overlay .screen-box.wide-mode #sub-menu-content {
+    max-height: 80vh;  /* 通常の40vh制限を解除して、80vhまでスクロール可能に */
+    flex: 1;           /* ウィンドウ内で可能な限り広げる */
+}
 /* ステータス画面 (Status) - テクニカルな緑系 */
 #status-scene .screen-box {
     border-color: #363;
@@ -1419,4 +1445,921 @@ button[onclick^="close"], button[onclick^="exit"], button[onclick^="return"] {
 #temple-scene .screen-box {
     max-height: 90vh;
     overflow-y: auto;
+}
+
+/* =========================================
+   修正: 町のステータス表示を2列グリッド化
+   ========================================= */
+
+#town-status {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 1:1の比率で2列表示 */
+    gap: 8px; /* カード間の隙間 */
+    margin-bottom: 10px;
+}
+
+/* グリッド表示用にカードのスタイルを上書き調整 */
+#town-status .status-card {
+    margin-bottom: 0; /* グリッドのgapで間隔を取るため削除 */
+    width: auto;      /* グリッドセル幅に合わせる */
+    padding: 6px 8px; /* 余白を詰めてコンパクトに */
+}
+
+/* アイコンサイズを少し小さくして圧迫感を減らす */
+#town-status .hero-icon-lg {
+    width: 36px;
+    height: 36px;
+    margin-right: 8px;
+    border-width: 1px;
+}
+
+/* テキストサイズと行間を調整して情報を収める */
+#town-status .status-info {
+    font-size: 0.75em; /* 文字を少し小さく */
+    line-height: 1.2;  /* 行間を詰める */
+}
+
+/* 職業バッジの微調整 */
+#town-status .job-badge {
+    font-size: 0.9em;
+    padding: 1px 3px;
+}
+
+/* =========================================
+   修正: 神殿のメンバー選択を1行(4列)に収める
+   ========================================= */
+
+.temple-grid {
+    /* 3列(1fr 1fr 1fr)から、4列繰り返しに変更 */
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 4px; /* カード間の隙間を詰める */
+}
+
+/* 1行に押し込むためにカード内部をコンパクト化 */
+.temple-card {
+    padding: 8px 2px; /* 余白を削減 */
+    min-height: 90px; /* 高さを揃える */
+    justify-content: center;
+}
+
+/* アイコンサイズを少し小さく */
+.temple-icon {
+    width: 32px; 
+    height: 32px;
+    margin-bottom: 3px;
+}
+
+/* 文字サイズを調整 */
+.temple-name {
+    font-size: 0.75em; /* 名前を小さく */
+    margin-bottom: 2px;
+}
+
+/* 詳細情報(Lv, 職業)の調整 */
+.temple-meta {
+    font-size: 0.6em;
+    line-height: 1.1;
+    white-space: nowrap; /* 折り返しを禁止 */
+    overflow: hidden;    /* はみ出た分は隠す */
+    text-overflow: ellipsis; /* ...で省略 */
+    width: 95%;          /* 幅いっぱい使う */
+}
+
+/* =========================================
+   修正: テキストを省略せず折り返して表示
+   ========================================= */
+
+/* 詳細情報(Lv, 職業)の表示調整 */
+.temple-meta {
+    font-size: 0.55em;   /* 文字サイズを少し小さく */
+    line-height: 1.1;    /* 行間を詰める */
+    
+    white-space: normal; /* 折り返しを許可 */
+    overflow: visible;   /* 内容を隠さない */
+    text-overflow: clip; /* "..."で省略しない */
+    
+    width: 100%;         /* 横幅をフルに使う */
+    word-wrap: break-word; /* 長い単語も折り返す */
+}
+
+/* 文字が2行になっても収まるようにカードの高さを微調整 */
+.temple-card {
+    min-height: 100px; /* 高さを少し増やす */
+    padding: 6px 2px;
+    justify-content: flex-start; /* 上寄せ配置 */
+}
+
+/* 名前も少し詰める */
+.temple-name {
+    margin-bottom: 1px;
+}
+
+/* =========================================
+   キャラクター選択カード (新規追加)
+   ========================================= */
+.char-select-btn {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    height: 75px !important; /* 高さを確保 */
+    padding: 5px 12px !important;
+    margin-bottom: 8px;
+    background: linear-gradient(90deg, #2a2a35, #151518);
+    border: 1px solid #445;
+    border-left: 4px solid #667; /* 左にアクセントカラー */
+    transition: all 0.15s;
+    text-align: left;
+}
+
+.char-select-btn:active {
+    transform: scale(0.98);
+    background: #334;
+    border-color: #88f;
+}
+
+.char-select-btn:disabled {
+    opacity: 0.6;
+    filter: grayscale(100%);
+    background: #111;
+}
+
+/* 顔アイコン */
+.char-select-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 6px;
+    border: 2px solid #556;
+    background: #000;
+    margin-right: 15px;
+    flex-shrink: 0;
+    image-rendering: pixelated; /* ドット絵用 */
+    object-fit: contain;
+}
+
+/* テキスト情報エリア */
+.char-select-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.3;
+    width: 100%;
+}
+
+.char-select-name {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #eee;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.char-select-job {
+    font-size: 0.7em;
+    color: #aaa;
+    margin-left: 8px;
+    background: #333;
+    padding: 1px 4px;
+    border-radius: 3px;
+    vertical-align: middle;
+}
+
+.char-select-status {
+    font-size: 0.85em;
+    color: #bbb;
+    margin-top: 2px;
+}
+
+/* =========================================
+   装備画面 (Equipment UI) - 新規追加
+   ========================================= */
+
+/* キャラクター情報のヘッダー */
+.equip-header {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(90deg, #202025, #101015);
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+.equip-char-img {
+    width: 50px;
+    height: 50px;
+    border: 2px solid #666;
+    border-radius: 50%;
+    margin-right: 15px;
+    background: #000;
+    object-fit: contain;
+}
+.equip-char-stats {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    font-size: 0.9em;
+    gap: 5px;
+}
+.stat-box {
+    background: rgba(255,255,255,0.05);
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: #ccc;
+}
+.stat-box span {
+    color: #fff;
+    font-weight: bold;
+    margin-left: 5px;
+}
+
+/* 装備スロットのグリッドレイアウト */
+.equip-slots-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+/* 個別の装備スロットカード */
+.equip-slot-card {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(145deg, #2a2a30, #1a1a20);
+    border: 1px solid #444;
+    border-left: 4px solid #555;
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    min-height: 50px;
+}
+.equip-slot-card:active {
+    transform: scale(0.98);
+    background: #222;
+}
+.equip-slot-card:hover {
+    border-color: #667;
+    background: linear-gradient(145deg, #33333a, #22222a);
+}
+
+/* 部位アイコン */
+.slot-icon-box {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.4em;
+    background: rgba(0,0,0,0.3);
+    border-radius: 6px;
+    margin-right: 12px;
+    border: 1px solid #333;
+    color: #888;
+}
+
+/* テキスト情報 */
+.slot-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.3;
+}
+.slot-label {
+    font-size: 0.65em;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+}
+.slot-item-name {
+    font-size: 1em;
+    font-weight: bold;
+    color: #eee;
+}
+.slot-item-name.empty {
+    color: #555;
+    font-style: italic;
+    font-weight: normal;
+}
+.slot-item-stats {
+    font-size: 0.75em;
+    color: #aaa;
+}
+
+/* 装備候補リストのスタイル強化 */
+.equip-candidate-btn {
+    display: flex !important;
+    flex-direction: row !important; /* 横並びに戻す */
+    align-items: center !important;
+    justify-content: space-between !important;
+    height: auto !important;
+    min-height: 60px !important;
+    padding: 8px 12px !important;
+    text-align: left !important;
+    background: linear-gradient(180deg, #2a2a30, #1a1a20);
+    border: 1px solid #444;
+    margin-bottom: 5px;
+}
+.equip-candidate-info {
+    display: flex;
+    flex-direction: column;
+}
+.equip-candidate-stats {
+    font-size: 0.8em;
+    color: #aaa;
+    margin-top: 2px;
+}
+
+/* =========================================
+   装備画面の縦幅拡張 (Tall Mode)
+   ========================================= */
+
+/* 装備画面用の縦長ウィンドウ設定 */
+#sub-menu-overlay .screen-box.tall-mode {
+    max-height: 95vh; /* 画面の高さ95%まで許容 */
+    height: auto;
+    max-width: 500px; /* 横幅も少し広げて見やすく */
+    display: flex;
+    flex-direction: column;
+}
+
+/* 内部リストの高さ制限(40vh)を解除して広げる */
+#sub-menu-overlay .screen-box.tall-mode .scroll-list {
+    max-height: 85vh !important; /* 画面に合わせて限界まで伸ばす */
+    flex: 1; /* 余白を埋める */
+}
+
+/* =========================================
+   リッチメニュー (Camp UI) デザイン
+   ========================================= */
+
+/* オーバーレイ背景 */
+#camp-overlay {
+    background: rgba(15, 15, 20, 0.85);
+    backdrop-filter: blur(8px); /* すりガラス効果 */
+    z-index: 3000;
+}
+
+/* メインコンテナ */
+.camp-container {
+    width: 95%;
+    max-width: 900px;
+    height: 85vh;
+    background: linear-gradient(135deg, rgba(30,30,40,0.9), rgba(20,20,25,0.95));
+    border: 1px solid #555;
+    border-radius: 12px;
+    box-shadow: 0 0 40px rgba(0,0,0,0.8), inset 0 0 100px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+    color: #eee;
+}
+
+/* ヘッダーエリア */
+.camp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #444;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.camp-title-group h2 {
+    margin: 0;
+    text-align: left;
+    font-size: 2em;
+    letter-spacing: 2px;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+
+.camp-location-badge {
+    display: inline-block;
+    background: #333;
+    color: #aaa;
+    font-size: 0.8em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-top: 5px;
+    border: 1px solid #555;
+}
+
+.camp-funds {
+    text-align: right;
+    background: rgba(0,0,0,0.3);
+    padding: 5px 15px;
+    border-radius: 8px;
+    border: 1px solid #444;
+}
+.funds-label { font-size: 0.7em; color: #888; letter-spacing: 1px; }
+.funds-value { font-size: 1.4em; color: #ffd700; font-weight: bold; font-family: monospace; }
+
+/* ボディ (2カラムレイアウト) */
+.camp-body {
+    display: flex;
+    flex: 1;
+    gap: 20px;
+    overflow: hidden;
+}
+
+.camp-left-pane, .camp-right-pane {
+    display: flex;
+    flex-direction: column;
+}
+
+.camp-left-pane { flex: 1.2; }
+.camp-right-pane { flex: 1; }
+
+.pane-title {
+    font-size: 0.8em;
+    color: #666;
+    border-bottom: 1px solid #333;
+    margin-bottom: 10px;
+    padding-bottom: 2px;
+    letter-spacing: 1px;
+}
+
+/* キャラクターリスト */
+.camp-char-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* キャラカード */
+.camp-char-card {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(90deg, rgba(255,255,255,0.05), transparent);
+    border: 1px solid #444;
+    border-left: 4px solid #666;
+    border-radius: 6px;
+    padding: 10px;
+    transition: all 0.2s;
+}
+.camp-char-card:hover {
+    background: linear-gradient(90deg, rgba(255,255,255,0.1), transparent);
+    border-color: #777;
+    border-left-color: #0ff;
+    transform: translateX(5px);
+}
+
+.camp-char-img {
+    width: 54px; height: 54px;
+    border-radius: 50%;
+    border: 2px solid #555;
+    background: #000;
+    margin-right: 15px;
+    object-fit: contain;
+}
+
+.camp-char-info { flex: 1; }
+
+.camp-char-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+.camp-char-name { font-weight: bold; font-size: 1.1em; }
+.camp-char-job { font-size: 0.7em; background:#222; color:#aaa; padding:1px 5px; border-radius:4px; border:1px solid #444; }
+
+/* HPバー */
+.camp-hp-bar-bg {
+    width: 100%; height: 6px;
+    background: #222;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 4px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
+}
+.camp-hp-bar-fill { height: 100%; transition: width 0.3s ease; }
+
+.camp-char-details {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75em;
+    color: #bbb;
+    font-family: monospace;
+}
+
+/* メニューボタン・グリッド */
+.camp-menu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.camp-btn {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(145deg, #33333a, #222225);
+    border: 1px solid #445;
+    border-radius: 8px;
+    height: 90px;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+}
+.camp-btn:hover {
+    background: linear-gradient(145deg, #444450, #2a2a30);
+    border-color: #88f;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 5px rgba(0,0,0,0.4);
+}
+.camp-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.3);
+}
+
+.camp-btn-icon { font-size: 2em; margin-bottom: 5px; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+.camp-btn-label { font-weight: bold; color: #fff; font-size: 1.1em; letter-spacing: 1px; }
+.camp-btn-sub { font-size: 0.7em; color: #888; margin-top: 2px; }
+
+/* セーブボタン (特別色) */
+.save-btn { border-color: #853; }
+.save-btn .camp-btn-icon { text-shadow: 0 0 10px rgba(255,100,0,0.5); }
+.save-btn:hover { border-color: #fa0; }
+
+/* 閉じるボタン */
+.camp-close-btn {
+    margin-top: 15px;
+    padding: 12px;
+    background: #333;
+    color: #ccc;
+    border: 1px solid #555;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+    width: 100%;
+}
+.camp-close-btn:hover { background: #444; color: #fff; }
+
+/* スマホ対応 (縦並び) */
+@media (max-width: 768px) {
+    .camp-container { width: 100%; height: 100%; border-radius: 0; padding: 10px; }
+    .camp-header { margin-bottom: 10px; padding-bottom: 10px; }
+    .camp-body { flex-direction: column; gap: 10px; }
+    
+    .camp-left-pane { flex: none; height: auto; max-height: 40vh; }
+    .camp-status-list { flex-direction: row; overflow-x: auto; padding-bottom: 5px; }
+    .camp-char-card { min-width: 220px; margin-right: 5px; }
+    
+    .camp-right-pane { flex: 1; }
+    .camp-menu-grid { gap: 8px; }
+    .camp-btn { height: 70px; flex-direction: row; justify-content: flex-start; padding: 0 15px; }
+    .camp-btn-icon { margin-bottom: 0; margin-right: 15px; font-size: 1.8em; }
+    .camp-btn div { text-align: left; }
+    .camp-btn-label { font-size: 1em; }
+}
+
+/* =========================================
+   ワールドマップUIのリニューアル (World Map Overhaul)
+   ========================================= */
+
+/* ワールドマップ画面のウィンドウ枠 */
+#world-map-scene .screen-box {
+    background: linear-gradient(180deg, rgba(20, 25, 35, 0.95), rgba(10, 12, 15, 0.98));
+    border: 2px solid #5a4a3a; /* 古地図のような茶色枠 */
+    border-radius: 12px;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), inset 0 0 100px rgba(0,0,0,0.5);
+    max-width: 650px; /* 横幅を少し広げる */
+    width: 95%;
+    padding: 25px;
+}
+
+#world-map-scene h2 {
+    color: #deb887; /* 羊皮紙のような色 */
+    text-shadow: 0 2px 5px rgba(0,0,0,0.8);
+    border-bottom: 1px solid #5a4a3a;
+    font-family: serif; /* ファンタジー感を出す */
+    letter-spacing: 3px;
+}
+
+#world-map-scene p {
+    color: #aaa;
+    font-size: 0.8em;
+    margin-bottom: 15px;
+}
+
+/* 地図キャンバスの装飾 */
+#world-map-canvas {
+    border: 4px double #8b5a2b; /* 額縁のような枠 */
+    border-radius: 4px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    background-color: #001122;
+    margin-bottom: 20px;
+    /* キャンバス自体のサイズはJSで制御されますが、レスポンシブ用に */
+    width: 100%;
+    height: auto;
+    max-width: 400px; /* PCでの最大幅 */
+}
+
+/* ダンジョンリストのグリッドコンテナ */
+.dungeon-list-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* PCでは2列 */
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 20px;
+    max-height: 40vh; /* リストが長くなったらスクロール */
+    overflow-y: auto;
+    padding: 5px; /* スクロールバーと被らないように */
+}
+
+/* ダンジョン選択カード（ボタン） */
+.dungeon-card-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 70px !important;
+    background: linear-gradient(145deg, #2a2a30, #1a1a20);
+    border: 1px solid #444;
+    border-left: 4px solid #666; /* デフォルトのアクセントカラー */
+    border-radius: 8px;
+    padding: 10px 15px;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    text-align: left;
+    overflow: hidden;
+}
+
+.dungeon-card-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+    background: linear-gradient(145deg, #33333d, #22222a);
+    border-color: #777;
+}
+
+.dungeon-card-btn:active {
+    transform: translateY(1px);
+    box-shadow: none;
+}
+
+/* カード内の情報レイアウト */
+.dungeon-info-group {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    z-index: 2;
+}
+
+.dungeon-label {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #eee;
+    text-shadow: 1px 1px 0 #000;
+    margin-bottom: 3px;
+}
+
+.dungeon-sub-label {
+    font-size: 0.7em;
+    color: #888;
+    font-family: monospace;
+}
+
+/* クリア/Newバッジ */
+.dungeon-status-badge {
+    font-size: 0.75em;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    z-index: 2;
+}
+
+.badge-clear {
+    background: linear-gradient(135deg, #ffd700, #b8860b);
+    color: #000;
+    border: 1px solid #ffeebb;
+}
+
+.badge-new {
+    background: linear-gradient(135deg, #ff4444, #cc0000);
+    color: #fff;
+    border: 1px solid #ff8888;
+    animation: blink-badge 1.5s infinite alternate;
+}
+
+@keyframes blink-badge {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0.8; transform: scale(0.95); }
+}
+
+/* 背景にうっすらアイコンなどを置く装飾（オプション） */
+.dungeon-card-bg-icon {
+    position: absolute;
+    right: -10px;
+    bottom: -10px;
+    font-size: 4em;
+    opacity: 0.1;
+    transform: rotate(-15deg);
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* スマホ対応：1列にする */
+@media (max-width: 768px) {
+    .dungeon-list-grid {
+        grid-template-columns: 1fr; /* 1列 */
+    }
+    #world-map-scene .screen-box {
+        padding: 15px;
+        width: 95%;
+    }
+}
+
+/* =========================================
+   スキルツリー UI (Refined Compact)
+   ========================================= */
+
+/* ツリー全体のコンテナ */
+.skill-tree-container {
+    display: flex;
+    flex-direction: column;
+    padding: 15px 5px; /* 上下の余白を少し増やす */
+    align-items: flex-start;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* スキルノードのラッパー */
+.skill-node-wrapper {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+}
+
+/* 階層インデント・接続線エリア */
+.tree-connector-area {
+    display: flex;
+    flex-direction: row;
+    flex-shrink: 0;
+}
+
+/* ★修正3: 階層の段落幅を広げる (18px -> 32px) */
+.tree-line-block {
+    width: 55px;  /* ここを広げることで、2つ目以降の段落もしっかり開きます */
+    position: relative;
+    flex-shrink: 0;
+}
+
+/* 縦線 */
+.tree-line-v {
+    position: absolute;
+    top: 0; bottom: 0; 
+    left: 0; /* 左端に寄せる */
+    border-left: 2px solid #555;
+}
+.tree-line-v.last-child { bottom: 50%; }
+
+/* 横線 */
+.tree-line-h {
+    position: absolute;
+    top: 50%; 
+    left: 0;      /* 左端から */
+    right: -4px;  /* カードまで繋ぐ */
+    border-top: 2px solid #555;
+}
+
+/* スキルカード本体 */
+.skill-card {
+    /* ★修正2: カード幅をさらに狭く (360px -> 300px) */
+    flex: 0 1 auto;
+    width: 100%;
+    max-width: 300px; 
+    
+    background: linear-gradient(145deg, #2a2a30, #1a1a20);
+    border: 1px solid #444;
+    border-left: 4px solid #444;
+    border-radius: 5px;
+    
+    /* ★修正1: 縦の間隔を広げる (margin-bottom: 6px -> 12px) */
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    
+    position: relative;
+    box-shadow: 0 3px 5px rgba(0,0,0,0.3);
+    transition: all 0.2s;
+    min-height: 45px;
+    box-sizing: border-box;
+}
+
+/* 状態別スタイル */
+.skill-card.learned {
+    background: linear-gradient(145deg, #1a2a3a, #0a1520);
+    border-color: #4af;
+    border-left-color: #4af;
+    box-shadow: 0 0 6px rgba(0, 200, 255, 0.15);
+}
+.skill-card.learned .skill-icon-box {
+    border-color: #4af;
+    color: #fff;
+    text-shadow: 0 0 5px #0ff;
+    background: rgba(0, 50, 100, 0.5);
+}
+
+.skill-card.available {
+    border-color: #ffd700;
+    border-left-color: #ffd700;
+}
+.skill-card.available:hover {
+    transform: translateX(3px);
+    background: #2a2a25;
+}
+
+.skill-card.locked {
+    opacity: 0.6;
+    background: #111;
+    border-color: #333;
+    border-left-color: #333;
+    filter: grayscale(80%);
+}
+
+/* アイコンボックス */
+.skill-icon-box {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2em;
+    background: #000;
+    border: 1px solid #555;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+/* スキル情報テキスト */
+.skill-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.3;
+    min-width: 0;
+}
+
+.skill-name {
+    font-weight: bold;
+    font-size: 0.9em;
+    color: #eee;
+    white-space: normal;
+    word-break: break-all;
+}
+
+.skill-meta {
+    font-size: 0.65em;
+    color: #aaa;
+    white-space: normal;
+    line-height: 1.2;
+}
+
+.skill-level {
+    font-size: 0.8em;
+    color: #4af;
+    margin-left: 4px;
+    background: rgba(0, 255, 255, 0.1);
+    padding: 0 3px;
+    border-radius: 3px;
+    display: inline-block; 
+}
+
+/* ボタン */
+.skill-btn {
+    width: auto !important;
+    min-width: 50px;
+    height: 30px !important;
+    font-size: 0.75em !important;
+    padding: 0 8px !important;
+    flex-shrink: 0;
+    margin: 0 !important;
+    border-radius: 4px;
+}
+
+/* ロックアイコン */
+.lock-icon {
+    font-size: 1em;
+    color: #555;
+    margin-right: 5px;
 }
