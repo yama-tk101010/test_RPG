@@ -899,6 +899,183 @@ h1, h2 {
 }
 
 /* =========================================
+   【スマホ版】キャンプメニュー改善設定 (Ver.2)
+   ========================================= */
+@media (max-width: 768px) {
+    /* --- コンテナ全体: 画面いっぱいに使いつつ余白を詰める --- */
+    .camp-container {
+        width: 98%;
+        height: 98vh; /* ほぼ全画面 */
+        padding: 5px; /* 余白を最小限に */
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* --- ヘッダー: 極力コンパクトに --- */
+    .camp-header {
+        margin-bottom: 5px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #444;
+        flex-shrink: 0; /* 縮小させない */
+    }
+    .camp-title-group h2 {
+        font-size: 1.2em; /* 文字サイズ微調整 */
+    }
+    .funds-value {
+        font-size: 1em;
+    }
+    /* 場所表示バッジなどは小さく */
+    .camp-location-badge {
+        font-size: 0.7em;
+        padding: 1px 6px;
+        margin-top: 2px;
+    }
+
+    /* --- ボディ部: 縦並び配置 --- */
+    .camp-body {
+        flex-direction: column;
+        gap: 5px;
+        overflow: hidden; /* 親要素からはみ出さない */
+        flex: 1; /* 残りの高さを占有 */
+    }
+
+    /* --- 上部: ステータスエリア (町メニュー同様のグリッド表示) --- */
+    .camp-left-pane {
+        flex: 0 0 auto; /* 内容に合わせて高さを決める */
+        max-height: 40vh; /* 画面の4割程度まで */
+        overflow-y: auto; /* 人数が多い場合はスクロール */
+        margin-bottom: 5px;
+    }
+    
+    .pane-title {
+        display: none; /* スマホではタイトル省略してスペース確保 */
+    }
+
+    /* ★変更点: 横スクロールではなく、町と同じ「2列グリッド」にする */
+    .camp-char-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* 2列表示 */
+        gap: 5px;
+        padding-bottom: 2px;
+        overflow: visible; /* グリッド表示のためスクロール設定解除 */
+    }
+
+    /* カードのスタイルを町メニュー風に調整 */
+    .camp-char-card {
+        flex-direction: row; /* アイコンと情報を横並び */
+        width: 100%;
+        min-width: 0;
+        padding: 5px;
+        margin-right: 0;
+        align-items: center;
+        background: rgba(255,255,255,0.05);
+    }
+    
+    /* アイコンサイズ */
+    .camp-char-card img.camp-char-img {
+        width: 36px;
+        height: 36px;
+        margin-right: 8px;
+        margin-bottom: 0;
+    }
+    
+    .camp-char-info {
+        width: 100%;
+        overflow: hidden; /* はみ出し防止 */
+    }
+    
+    .camp-char-top {
+        margin-bottom: 2px;
+        justify-content: flex-start;
+        gap: 5px;
+    }
+    .camp-char-name { 
+        font-size: 0.85em; 
+        white-space: nowrap; 
+    }
+    .camp-char-job { 
+        font-size: 0.6em; 
+        padding: 0 3px; 
+    }
+    
+    /* HPバーなどは少し細く */
+    .camp-hp-bar-bg {
+        height: 4px;
+        margin-bottom: 2px;
+    }
+    
+    .camp-char-details {
+        font-size: 0.7em;
+        line-height: 1.1;
+    }
+
+    /* --- 下部: メニューボタンエリア --- */
+    .camp-right-pane {
+        flex: 1; /* 残りのスペースを全て使う */
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        min-height: 0;
+    }
+
+    .camp-menu-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* 2列維持 */
+        gap: 5px;
+        padding-bottom: 5px;
+        overflow-y: auto; /* ボタンが多い場合はここがスクロールする */
+    }
+
+    /* ボタンのスタイル変更: 高さ削減 & 横並びレイアウト */
+    .camp-btn {
+        height: 50px !important; /* 高さを50pxに固定 */
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 0 10px;
+    }
+
+    .camp-btn-icon {
+        font-size: 1.2em;
+        margin-bottom: 0;
+        margin-right: 8px;
+        width: 24px;
+        text-align: center;
+    }
+
+    /* テキスト部分 */
+    .camp-btn div {
+        text-align: left;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .camp-btn-label {
+        font-size: 0.9em;
+        line-height: 1;
+    }
+    
+    /* サブテキスト(英語の説明など)はスペース節約のため非表示にする */
+    .camp-btn-sub {
+        display: none; 
+    }
+
+    /* 閉じるボタン */
+    .camp-close-btn {
+        margin-top: 5px;
+        padding: 0;
+        height: 40px; /* 少し小さく */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9em;
+        flex-shrink: 0; /* 縮小させない */
+    }
+}
+
+/* =========================================
    【スマホ版】キャンプメニュー改善設定 (Ver.3 極小化)
    ========================================= */
 @media (max-width: 768px) {
@@ -998,6 +1175,7 @@ h1, h2 {
         margin-left: 2px;
     }
 }
+
 /* =========================================
    全体デザイン・リファイン (All UI Overhaul)
    ========================================= */
